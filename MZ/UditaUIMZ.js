@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================================
 /*:
- * @plugindesc 1.0.0 - Wolf RPG Editor 格式的 UI
+ * @plugindesc 1.0.1 - Wolf RPG Editor 格式的 UI
  * @author 离影玫 | Rose_shadows
  * @target MZ
  * @help 
@@ -104,6 +104,7 @@
  * === 更新日志 ===
  * 
  * 1.0.0 - 完成。
+ * 1.0.1 - 添加设置主菜单组队已选选项css颜色的插件参数，以适配 Udita 窗口皮肤。
  * 
  * @command 启用/禁用Udita窗口皮肤
  * 
@@ -148,6 +149,12 @@
  * @require 1
  * @desc 默认的Udita窗口皮肤。放在 img/system/ 目录下。
  * @default WindowBase
+ * 
+ * @param Pending CSS Color
+ * @text 主菜单组队已选选项css颜色
+ * @parent === 窗口皮肤 ===
+ * @desc 主菜单组队功能高亮已选角色选项的 css 颜色。不写则跟随 RMMZ 原始设置。
+ * @default #36ceff
  * 
  * @param === 对话暂停光标 ===
  * 
@@ -248,6 +255,7 @@ RSSD.UUI.commonCursor      = ''+RSSD.UUI.parameters['Default Udita Cursor Name']
 RSSD.UUI.isCursorBlinking  = RSSD.UUI.parameters['Enable Udita Cursor Blinking'] === 'true';
 RSSD.UUI.pauseSignFrames   = +RSSD.UUI.parameters['Udita Pause Sign Frames'] || 6;
 RSSD.UUI.pauseSignSpeed    = +RSSD.UUI.parameters['Udita Pause Sign Anime Speed'] || 12;
+RSSD.UUI.pendingColor      = RSSD.UUI.parameters['Pending CSS Color'] || '';
 
 //==============================================================================
 // Game_System
@@ -681,6 +689,15 @@ Window_Base.prototype.loadUditaPauseSign = function() {
 
 Window_Base.prototype.loadUditaCursor = function() {
     this.uditaCursor = ImageManager.loadSystem($gameSystem.uditaCursor());
+};
+
+//==============================================================================
+// ColorManager
+//==============================================================================
+
+let __RSSD_UUI_ColorManager_pendingColor = ColorManager.pendingColor;
+ColorManager.pendingColor = function() {
+    return RSSD.UUI.pendingColor || __RSSD_UUI_ColorManager_pendingColor.call(this);
 };
 
 //==============================================================================
