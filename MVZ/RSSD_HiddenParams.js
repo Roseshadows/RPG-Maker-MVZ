@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 1.1.3 - 自定义隐藏属性
+ * @plugindesc 1.1.5 - 自定义隐藏属性
  * @author Rose_shadows
  * @target MV MZ
  * @help
@@ -16,10 +16,12 @@
  * 
  * 1. 属性可以附加在角色、职业、物品、武器、防具、技能、敌人、状态上，
  *    在使用物品/技能、更换武器/防具、增减状态、更改职业时可以实时更改属性值。
+ *    注意，本插件只能设置属性值*累加*的属性。
  * 2. 可以在伤害公式中使用所设置的隐藏属性。
  * 3. 可以通过插件指令/脚本更改指定角色的指定属性。
  * 4. 可以使用控制字符显示指定属性的属性名和属性值。
- * 5. 版本 1.1.0 起，对于 MV ，可以使用 YEP_StatusMenuCore.js 显示属性。
+ * 5. 版本 1.1.0 起，对于 MV ，可以使用 YEP_StatusMenuCore.js 显示角色属性。
+ * 6. 版本 1.1.5 起，可以暂时强制将属性值设为特定值，用于某些演出效果。
  * 
  * 
  * === 使用方法 - 插件参数 ===
@@ -44,7 +46,7 @@
  * 其中，[SHORT_NAME]是隐藏属性的属性短名，VALUE是附加值。
  * 
  * 例如，如果一个属性的短名是“np”，现在想让角色在装备武器#3时增长100点“np”值，
- * 则在武器#3的备注栏中如下书写：
+ * 则在武器#3的备注栏中这样写：
  * <p_np:100>
  * 如果想减少属性值，只需设置负数即可。
  * 
@@ -57,13 +59,14 @@
  * 和“a.atk”“b.mat”类似，你可以使用 a._SHORT_NAME 来调用当前的属性值。
  * 
  * 例如，如果一个属性的短名是“np”，要获取使用者的该属性值，
- * 就在伤害公式中如下书写：
+ * 就在伤害公式中这样写：
  * a._np
  * 
  * 
  * === 控制字符 ===
  * 
- * 在对话框中显示属性名：
+ * 1) 在对话框中显示属性名
+ * 
  *   \HCPN[SHORT_NAME]
  * SHORT_NAME - 属性短名
  * 
@@ -71,7 +74,8 @@
  *   \HCPN[np]
  * - 显示短名为 np 的属性的名称
  * 
- * 在对话框中显示指定角色/敌人的指定属性值：
+ * 2) 在对话框中显示指定角色/敌人的指定属性值
+ * 
  *   \HCPV[TYPE,INDEX,SHORT_NAME]
  * TYPE - 战斗者类型。a = 角色，e = 敌人(仅用于战斗中，否则忽略)
  * INDEX - 索引。TYPE 若为 a，则是角色ID，若为 e，则是敌人敌群索引
@@ -95,56 +99,74 @@
  * 
  * === MV 插件指令 ===
  * 
+ * 1) 增减指定人物的指定属性值
+ * 
  * ::RSSD_HP change {TYPE} {INDEX} {SHORT_NAME} {VALUE}
- * - 增减指定人物的指定属性值。
  *   {TYPE} - 战斗者类型。actor = 角色；enemy = 敌人(仅用于战斗)
  *   {INDEX} - 索引。{TYPE}若为 actor，则是角色ID；
- *             若为 enemy，则是敌人索引(仅用于战斗)
+ *             若为 enemy，则是敌人索引(仅用于战斗，从0开始)
  *   {SHORT_NAME} - 属性短名
- *   {VALUE} - 要更改的属性值
+ *   {VALUE} - 要更改的属性值。
+ *             可以是数字，或者 “var”+ID 表示设为变量值。
+ * e.g.
+ * ::RSSD_HP change actor 2 np 10
+ * ::RSSD_HP change enemy 0 np -12
+ * ::RSSD_HP change actor 1 np var3    // 设为变量#3的值
  * 
- * ::RSSD_HP 更改 {类型} {索引} {短名} {增减值}
- * - 同上。增减指定人物的指定属性值。
- *   {类型} - 战斗者类型。可以是 角色 或者 敌人 (对敌人的更改仅用于当前战斗)
- *   {索引} - 索引。{类型}若为 角色，则是角色ID；
- *             若为 敌人，则是敌人索引(仅用于战斗)
- *   {短名} - 属性短名
- *   {增减值} - 要更改的属性值
+ * 2) 强制将人物对应属性的值设置为指定值
  * 
+ * ::RSSD_HP set {TYPE} {INDEX} {SHORT_NAME} {VALUE}
+ *   {VALUE} 可以是数字，或者 “var”+ID 表示设为变量值。
+ * e.g.
+ * ::RSSD_HP set actor 2 np 15
+ * ::RSSD_HP set enemy 0 np var3
+ * 
+ * 3) 将先前强制设置的对应属性值恢复到原来各项相加的数值
+ * 
+ * ::RSSD_HP revive {TYPE} {INDEX} {SHORT_NAME}
+ * e.g.
+ * ::RSSD_HP revive actor 2 np
+ *   
  * 
  * === 脚本 ===
  * 
- * 提前说明，以下出现的 character 是 $gameActors.actor(actorId)
- * 或 $gameTroop.members()[enemyIndex]
- * 或 $gameParty.members()[memberIndex] 对象
+ * 提前说明，以下出现的 character 是 $gameActors.actor(角色ID)
+ * 或 $gameTroop.members()[敌人索引]
+ * 或 $gameParty.members()[角色队伍索引] 对象
  * 
- * character.changeCusparam('SHORT_NAME', VALUE);
- * - 给人物的短名为 SHORT_NAME 的属性值增加 VALUE 。
- *   如果 VALUE 是负数，就是减少属性值。
+ * character.changeCusparam('属性短名', 属性值);
+ * - 给人物增加对应属性的属性值。
+ *   如果是负数，就是减少属性值。
  * 
- * character.cusparam('SHORT_NAME')
- * - 获取人物的短名为 SHORT_NAME 的属性总值。
+ * character.forceSetCusparam('属性短名', 属性值);
+ * - 将人物对应属性强制设置为特定值。
  * 
- * character.initialCusparam('SHORT_NAME')
- * - 获取人物*默认*的短名为 SHORT_NAME 的属性值。
+ * character.reviveForcedCusparam('属性短名');
+ * - 将用上一条脚本强制设置的对应属性的值恢复到原来各项相加的数值。
  * 
- * character.stateCusparam('SHORT_NAME')
- * - 获取人物通过*状态*增减的短名为 SHORT_NAME 的属性值。
+ * character.cusparam('属性短名')
+ * - 获取人物对应属性总值。
  * 
- * character.itemCusparam('SHORT_NAME')
- * - 获取人物通过*技能/物品*增减的短名为 SHORT_NAME 的属性值。
+ * character.initialCusparam('属性短名')
+ * - 获取人物默认的对应属性的属性值。
  * 
- * character.plusCusparam('SHORT_NAME')
- * - 获取人物通过*插件指令/脚本*增减的短名为 SHORT_NAME 的属性值。
+ * character.stateCusparam('属性短名')
+ * - 获取人物通过状态增减的对应属性的属性值。
  * 
- * character.equipCusparam('SHORT_NAME')
- * - 获取人物通过*装备*增减的短名为 SHORT_NAME 的属性值。
+ * character.itemCusparam('属性短名')
+ * - 获取人物通过技能/物品增减的对应属性的属性值。
  * 
- * character.classCusparam('SHORT_NAME')
- * - 获取人物通过*职业*增减的短名为 SHORT_NAME 的属性值。
+ * character.plusCusparam('属性短名')
+ * - 获取人物通过插件指令/脚本增减的对应属性的属性值。
  * 
- * TextManager.cusparamName('SHORT_NAME')
- * - 获取短名为 SHORT_NAME 的属性名称。
+ * character.equipCusparam('属性短名')
+ * - 获取人物通过装备增减的对应属性的属性值。
+ * 
+ * character.classCusparam('属性短名')
+ * - 获取人物通过职业增减的对应属性的属性值。
+ * 
+ * TextManager.cusparamName('属性短名')
+ * - 获取对应属性的属性名称。
  * 
  * 
  * === 使用条款 ===
@@ -162,7 +184,8 @@
  * 1.1.2 - 更新插件参数结构，添加为每个数据库对象单独设置默认值的功能。
  *         修复用脚本获取通过装备、技能、状态等单独增减的属性值时小数不精确
  *         的问题，更新帮助文本。
- * 1.1.3 - 修正了插件帮助的事件脚本部分，新增了更易于记忆的MV插件指令。
+ * 1.1.5 - 新增强制更改属性为特定值的功能，新增通过插件指令对属性设置变量值
+ *         的功能，修复MZ无法通过插件指令减少属性值的问题，更正帮助文本。
  * 
  * 
  * @command Change Cusparam
@@ -170,15 +193,85 @@
  * @desc 通过插件指令增减属性值。
  * 
  * @arg Param Short Name
- * @text 隐藏属性短名
- * @desc 隐藏属性的短名。
+ * @text 属性短名
+ * @desc 属性的短名。
  * @default 
  * 
  * @arg Value
  * @text 增减值
  * @type number
+ * @min -9999
  * @desc 增减的属性值。若为负数就是减少属性值。
  * @default 0
+ * 
+ * @arg Var ID
+ * @text 增减变量ID
+ * @type variable
+ * @desc 变量ID。该变量值将会作为增减的属性值。如果同时设置了上一条“增减值”参数，优先应用这一条参数。
+ * @default 0
+ * 
+ * @arg Target
+ * @text 作用对象
+ * @type select
+ * @option 角色
+ * @value actor
+ * @option 敌人(仅用于战斗中)
+ * @value enemy
+ * @desc 增减属性值的对象。
+ * @default actor
+ * 
+ * @arg Index
+ * @text 索引
+ * @type number
+ * @desc 作用对象索引。作用对象若为角色，则是角色ID；若为敌人，则是敌人在敌群中的索引。注意，敌群索引从 0 开始。
+ * @default 1
+ * 
+ * @command Set Cusparam
+ * @text 强制设置属性值
+ * @desc 强制设置人物对应属性的值。
+ * 
+ * @arg Param Short Name
+ * @text 属性短名
+ * @desc 属性的短名。
+ * @default 
+ * 
+ * @arg Value
+ * @text 值
+ * @type number
+ * @min -9999
+ * @desc 属性值要设置为多少？
+ * @default 0
+ * 
+ * @arg Var ID
+ * @text 变量ID
+ * @type variable
+ * @desc 变量ID。该变量值将会作为设置的属性值。如果同时设置了上一条“值”参数，优先应用这一条参数。
+ * @default 0
+ * 
+ * @arg Target
+ * @text 作用对象
+ * @type select
+ * @option 角色
+ * @value actor
+ * @option 敌人(仅用于战斗中)
+ * @value enemy
+ * @desc 增减属性值的对象。
+ * @default actor
+ * 
+ * @arg Index
+ * @text 索引
+ * @type number
+ * @desc 作用对象索引。作用对象若为角色，则是角色ID；若为敌人，则是敌人在敌群中的索引。注意，敌群索引从 0 开始。
+ * @default 1
+ * 
+ * @command Revive Cusparam
+ * @text 恢复强制设置属性值
+ * @desc 恢复被强制设置的属性值。
+ * 
+ * @arg Param Short Name
+ * @text 属性短名
+ * @desc 属性的短名。
+ * @default 
  * 
  * @arg Target
  * @text 作用对象
@@ -341,7 +434,8 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
         const init_armor  = +obj['Initial Armor Value'] || 0;
         const init_state  = +obj['Initial State Value'] || 0;
         _.paramList[s_name] = {'name': name, 'min': min, 'max': max, 'isRate': isRate, 'nameL': nameLayout, 'vColor': valueColor,
-        'initActor': init_actor, 'initEnemy': init_enemy, 'initClass': init_class, 'initItem': init_item, 'initSkill': init_skill, 'initWeapon': init_weapon, 'initArmor': init_armor, 'initState': init_state};
+        'initActor': init_actor, 'initEnemy': init_enemy, 'initClass': init_class, 'initItem': init_item, 'initSkill': init_skill, 
+        'initWeapon': init_weapon, 'initArmor': init_armor, 'initState': init_state};
     });
 
     _.getShortNamesByName = function(name) {
@@ -406,7 +500,7 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
         let keys = Object.keys(_.paramList);
         for(let i = 0; i < keys.length; i++){
             const s_name = keys[i];
-            this._cusparamSettings[s_name] = {_item: 0, _state: 0, _class: 0, _equip: 0, _plus: 0}
+            this._cusparamSettings[s_name] = {_item: 0, _state: 0, _class: 0, _equip: 0, _plus: 0, _forced: null}
         }
     };
 
@@ -456,6 +550,21 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
         this.refreshCusparams();
     };
 
+    Game_Battler.prototype.needsForcedCusparam = function(s_name) {
+        const cusparam = this._cusparamSettings[s_name];
+        return cusparam._forced !== null && cusparam._forced !== undefined;
+    };
+
+    Game_Battler.prototype.forceSetCusparam = function(s_name, value) {
+        const cusparam = this._cusparamSettings[s_name];
+        cusparam._forced = value;
+        this.refreshCusparam(s_name);
+    };
+
+    Game_Battler.prototype.reviveForcedCusparam = function(s_name) {
+        this.forceSetCusparam(s_name, null);
+    };
+
     Game_Battler.prototype.changeCusparam = function(s_name, variant) {
         const cusparam = this._cusparamSettings[s_name];
         cusparam._plus += variant || 0;
@@ -475,6 +584,11 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
     };
 
     Game_Battler.prototype.cusparam = function(s_name) {
+        if(this.needsForcedCusparam(s_name)) return this.forcedCusparam(s_name);
+        return this.calcCusparam(s_name);
+    };
+
+    Game_Battler.prototype.calcCusparam = function(s_name) {
         let value = this.initialCusparam(s_name) + this.stateCusparam(s_name) + this.itemCusparam(s_name) + this.plusCusparam(s_name);
         const min = _.paramList[s_name].min;
         const max = _.paramList[s_name].max;
@@ -497,6 +611,11 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
     Game_Battler.prototype.plusCusparam = function(s_name) {
         const cusparam = this._cusparamSettings[s_name];
         return _.parseForFloat(cusparam._plus);
+    };
+
+    Game_Battler.prototype.forcedCusparam = function(s_name) {
+        const cusparam = this._cusparamSettings[s_name];
+        return _.parseForFloat(cusparam._forced);
     };
 
     /**Items & Skills */
@@ -637,7 +756,7 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
         return _.parseForFloat(cusparam._equip);
     };
 
-    Game_Actor.prototype.cusparam = function(s_name) {
+    Game_Actor.prototype.calcCusparam = function(s_name) {
         let value = this.initialCusparam(s_name) + this.stateCusparam(s_name) + this.itemCusparam(s_name) + this.classCusparam(s_name) + this.equipCusparam(s_name) + this.plusCusparam(s_name);
         const min = _.paramList[s_name].min;
         const max = _.paramList[s_name].max;
@@ -698,32 +817,121 @@ RSSD.HP.pluginName = 'RSSD_HiddenParams';
                     break;
             }
             const s_name = args['Param Short Name'];
-            const value = +args['Value'];
+            const numValue = +args['Value'];
+            const varId = +args['Var ID'];
+            const value = varId ? $gameVariables.value(varId) : numValue;
             if(obj) obj.changeCusparam(s_name, value);
-        })
+        });
+        PluginManager.registerCommand(_.pluginName, 'Set Cusparam', (args)=>{
+            let obj = null;
+            const id = +args['Index'];
+            switch(args['Target']) {
+                case 'actor':
+                    obj = $gameActors.actor(id);
+                    break;
+                case 'enemy':
+                    if($gameParty.inBattle()){
+                        obj = $gameTroop.members()[id];
+                    }
+                    break;
+            }
+            const s_name = args['Param Short Name'];
+            const numValue = +args['Value'];
+            const varId = +args['Var ID'];
+            const value = varId ? $gameVariables.value(varId) : numValue;
+            if(obj) obj.forceSetCusparam(s_name, value);
+        });
+        PluginManager.registerCommand(_.pluginName, 'Revive Cusparam', (args)=>{
+            let obj = null;
+            const id = +args['Index'];
+            switch(args['Target']) {
+                case 'actor':
+                    obj = $gameActors.actor(id);
+                    break;
+                case 'enemy':
+                    if($gameParty.inBattle()){
+                        obj = $gameTroop.members()[id];
+                    }
+                    break;
+            }
+            const s_name = args['Param Short Name'];
+            if(obj) obj.reviveForcedCusparam(s_name);
+        });
     } else {    
         var __Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
         Game_Interpreter.prototype.pluginCommand = function(command, args){
             __Game_Interpreter_pluginCommand.call(this, command, args);
             if(command === '::RSSD_HP') {
-                if(args[0].toLowerCase() == 'change' || args[0] === '更改') {
+                if(args[0].toLowerCase() === 'change') {
                     let obj = null;
                     const id = +args[2];
                     switch(args[1].toLowerCase()) {
                         case 'actor':
-                        case '角色':
                             obj = $gameActors.actor(id);
                             break;
                         case 'enemy':
-                        case '敌人':
                             if($gameParty.inBattle()){
                                 obj = $gameTroop.members()[id];
                             }
                             break;
                     }
                     const s_name = args[3];
-                    const value = +args[4] || 0;
+                    const numValue = +args[4] || 0;
+                    const varId = +args[4].replace('var','');
+                    const value = !isNaN(args[4]) ? numValue : $gameVariables.value(varId);
                     if(obj) obj.changeCusparam(s_name, value);
+                }
+                if(args[0] === '更改') {
+                    let obj = null;
+                    if(args[1].includes('角色#')) {
+                        const id = +args[1].replace('角色#', '');
+                        obj = $gameActors.actor(id);
+                    } else if(args[1].includes('') && $gameParty.inBattle()) {
+                        const id = +args[1].replace('敌人#', '');
+                        obj = $gameTroop.members()[id];
+                    }
+                    if(obj) {
+                        const s_name = args[2];
+                        const numValue = +args[3] || 0;
+                        const varId = +args[3].replace('变量#','');
+                        const value = !isNaN(args[3]) ? numValue : $gameVariables.value(varId);
+                        obj.changeCusparam(s_name, value);
+                    }
+                }
+                if(args[0].toLowerCase() === 'set') {
+                    let obj = null;
+                    const id = +args[2];
+                    switch(args[1].toLowerCase()) {
+                        case 'actor':
+                            obj = $gameActors.actor(id);
+                            break;
+                        case 'enemy':
+                            if($gameParty.inBattle()){
+                                obj = $gameTroop.members()[id];
+                            }
+                            break;
+                    }
+                    const s_name = args[3];
+                    const numValue = +args[4] || 0;
+                    const varId = +args[4].replace('var','');
+                    const value = !isNaN(args[4]) ? numValue : $gameVariables.value(varId);
+                    if(obj) obj.forceSetCusparam(s_name, value);
+                }
+                if(args[0].toLowerCase() === 'revive') {
+                    let obj = null;
+                    const id = +args[2];
+                    switch(args[1].toLowerCase()) {
+                        case 'actor':
+                            obj = $gameActors.actor(id);
+                            break;
+                        case 'enemy':
+                            if($gameParty.inBattle()){
+                                obj = $gameTroop.members()[id];
+                            }
+                            break;
+                    }
+                    const s_name = args[3];
+                    if(obj) obj.reviveForcedCusparam(s_name);
                 }
             }
         }

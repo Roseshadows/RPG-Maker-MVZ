@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 1.0.0 - 自定义隐藏属性 - 扩展 - 可成长属性
+ * @plugindesc 1.0.1 - 自定义隐藏属性 - 扩展 - 可成长属性
  * @author Rose_shadows
  * @target MV MZ
  * @help
@@ -12,6 +12,8 @@
  * 该插件为 RSSD_HiddenParams.js 的扩展插件，旨在允许开发者设置可随等级增长的隐
  * 藏属性。
  * 该插件只作用于角色，因为原生RMMV中敌人没有等级概念。
+ * 
+ * !注意! 当前版本不兼容版本 1.1.2 及以下版本的 RSSD_HiddenParams.js 插件。
  * 
  * 
  * === 特性 ===
@@ -61,9 +63,6 @@
  * 
  * 2. 其次，需要在“可成长属性列表”中注册可成长属性的相关设置。
  * 
- * 注册好后，隐藏属性就成为了可成长的属性。
- * 如果希望该属性不可成长，见下插件指令。
- * 
  * ！注意！在列表中，必须将所有可能成为可成长属性的属性都一并注册进去。
  * 
  * 如果你希望在游戏中途 *将某个不可成长属性变更为可成长属性* ，
@@ -71,7 +70,7 @@
  * 每级变更属性值”均设为0，
  * 然后在“可成长属性列表”中注册这个属性的相关设置，将“默认成长类型标识符”设为刚
  * 刚设置的成长类型的标识符，
- * 之后在游戏中使用插件指令或脚本更改成长类型即可。
+ * 然后在游戏中使用插件指令或脚本更改成长类型即可。
  * 
  * 
  * === 使用方法 - 数据库标签 ===
@@ -138,6 +137,7 @@
  * === 兼容性 ===
  * 
  * 请将该插件放到 RSSD_HiddenParams.js 之下。
+ * !注意! 当前版本不兼容版本 1.1.2 及以下版本的  RSSD_HiddenParams.js 插件。
  * 
  * 
  * === 使用条款 ===
@@ -148,6 +148,7 @@
  * === 更新日志 ===
  * 
  * 1.0.0 - 完成。
+ * 1.0.1 - 修改部分代码以兼容新版（1.1.5及以上）前置插件。
  * 
  * @command Change Growth Type
  * @text 更改属性成长类型
@@ -155,13 +156,11 @@
  * 
  * @arg Actor ID
  * @text 角色ID
- * @type actor
  * @desc 角色ID。
  * @default 
  * 
  * @arg Class ID
  * @text 职业ID
- * @type class
  * @desc 职业ID。两项都填的话，优先使用角色ID。
  * @default 
  * 
@@ -483,9 +482,9 @@ RSSD.HP_PG.pluginName = 'RSSD_HP_Addon_ParamGrowth';
             return num;
         };
 
-        var __Game_Actor_cusparam = Game_Actor.prototype.cusparam;
-        Game_Actor.prototype.cusparam = function(s_name) {
-            const value = __Game_Actor_cusparam.call(this, s_name) + this.levelCusparam(s_name);
+        var __Game_Actor_calcCusparam = Game_Actor.prototype.calcCusparam;
+        Game_Actor.prototype.calcCusparam = function(s_name) {
+            const value = __Game_Actor_calcCusparam.call(this, s_name) + this.levelCusparam(s_name);
             const min = _.paramList[s_name].min || -Infinity;
             const max = _.paramList[s_name].max || Infinity;
             return _.parseForFloat(value.clamp(min, max));
