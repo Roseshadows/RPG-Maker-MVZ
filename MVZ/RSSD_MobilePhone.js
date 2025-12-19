@@ -3,9 +3,9 @@
 // Author: Rose_shadows
 //==============================================================================
 /*:
- * @plugindesc 1.0.2 - 手机菜单
+ * @plugindesc 1.1.0 - 手机菜单
  * @author Rose_shadows
- * @target MV
+ * @target MV MZ
  * @help
  * === 介绍 ===
  *
@@ -18,10 +18,10 @@
  *
  * 手机菜单的背景和遮罩需要放在 img/phones/ 文件夹下。
  * APP的自定义图标集放在img/system/下。格式必须和游戏的图标集一致
- * （一排最多16个图标）。
+ * （一排最多16个图标，单个图标宽高相等）。
  *
  *
- * === 插件指令 ===
+ * === 插件指令 (MV) ===
  *
  * ::RSSD_MP open
  * ::RSSD_MP 打开手机
@@ -63,6 +63,31 @@
  * 1.0.0 - 完成。
  * 1.0.1 - 增加了设置初始APP的功能。
  * 1.0.2 - 修复用评估代码设置背景位置时不生效的问题。
+ * 1.1.0 - 兼容MZ，修复了若干Bug。
+ * 
+ * 
+ * @command 打开手机
+ * @desc 打开手机界面。
+ * 
+ * @command 设置手机样式
+ * @desc 为手机界面设置背景和遮罩的预设样式。
+ * 
+ * @arg 样式关键字
+ * @desc 预设的样式关键字。
+ * @default 
+ * 
+ * @command 安装应用
+ * @desc 为手机安装应用。
+ * 
+ * @arg APP关键字
+ * @desc 预设的APP关键字。
+ * @default 
+ * 
+ * @command 卸载应用
+ * 
+ * @arg APP关键字
+ * @desc 预设的APP关键字。
+ * @default 
  * 
  * 
  * @param APP列表
@@ -163,6 +188,16 @@
  * @desc 图标与字体的间隔。单位像素。
  * @default 2
  * 
+ * @param MZ
+ * @text === MZ 相关设置 ===
+ * 
+ * @param 是否移除指令选项背景
+ * @parent MZ
+ * @type boolean
+ * @on 移除
+ * @off 不移除
+ * @desc 是否移除APP指令选项的背景？默认不移除（false）
+ * @default false
  */
 
 /*~struct~app:
@@ -348,6 +383,7 @@ RSSD.MP.maxCols        = +RSSD.MP.parameters['列数'] || 4;
 RSSD.MP.numVisibleRows = +RSSD.MP.parameters['可见行数'] || 7;
 RSSD.MP.fontSize       = +RSSD.MP.parameters['字体大小'] || 16;
 RSSD.MP.iconTextDis    = +RSSD.MP.parameters['图标字体间隔'] || 2;
+RSSD.MP.removeItemBack = RSSD.MP.parameters['是否移除指令选项背景'] === 'true';
 
 /* APP注册 */
 
@@ -371,7 +407,7 @@ for(var i = 0; i < temp_arr.length; i++) {
     app.commonEvent    = +obj['绑定公共事件'] || 0;
     app.code           = !!obj['自定义代码'] ? JSON.parse(obj['自定义代码']) : '';
     var key            = obj['APP关键字'];
-    RSSD.MP.app[key] = app;
+    RSSD.MP.app[key]   = app;
 }
 
 /* 初始APP */
@@ -408,31 +444,38 @@ for(var i = 0; i < temp_arr2.length; i++) {
 // Game_System
 //=============================================================================
 
-/* APP安装/卸载 & 手机样式 */
-
-var __MP_Game_System_initialize = Game_System.prototype.initialize;
+let __RSSD_MP_Game_System_initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function() {
-    __MP_Game_System_initialize.call(this);
+    __RSSD_MP_Game_System_initialize.call(this);
+    this.initializePhoneAppData();
+};
+
+Game_System.prototype.initializePhoneAppData = function() {
     this._currentPhoneLayout = null;
     this._hiddenPhoneAppList = [];
     this.setInitialPhoneApps();
 };
 
 Game_System.prototype.setInitialPhoneApps = function() {
-    this._hiddenPhoneAppList = JsonEx.makeDeepCopy(Object.keys(RSSD.MP.app));
-    RSSD.MP.initialApps.forEach((app)=>{
-        var index = this._hiddenPhoneAppList.indexOf(app);
-        this._hiddenPhoneAppList.splice(index, 1, 0);
-    });
+    const appList = Object.keys(RSSD.MP.app);
+    appList.forEach((app)=>{
+        if(!RSSD.MP.initialApps.includes(app)) {
+            this._hiddenPhoneAppList.push(app);
+        }
+    })
 };
 
 Game_System.prototype.setPhoneAppVisibility = function(key, visible) {
-    if(!visible) {
-        this._hiddenPhoneAppList.push(key);
+    const hiddenList = this._hiddenPhoneAppList;
+    if(visible !== undefined && !visible) {
+        const index = hiddenList.indexOf(key);
+        if(index === -1) {
+            hiddenList.push(key);
+        }
     } else {
-        var index = this._hiddenPhoneAppList.indexOf(key);
+        const index = hiddenList.indexOf(key);
         if(index > -1) {
-            this._hiddenPhoneAppList.splice(index, 1, 0);
+            hiddenList.splice(index, 1, 0);
         }
     }
 };
@@ -445,15 +488,13 @@ Game_System.prototype.setPhoneLayout = function(key) {
     this._currentPhoneLayout = key;
 };
 
-Game_System.prototype.getPhoneLayout = function(key) {
+Game_System.prototype.currentPhoneLayout = function() {
     return this._currentPhoneLayout;
 };
 
 //=============================================================================
 // Window_PhoneMain
 //=============================================================================
-
-/* 窗口&界面绘制 */
 
 function Window_PhoneMain() {
     this.initialize.apply(this, arguments);
@@ -463,31 +504,48 @@ Window_PhoneMain.prototype = Object.create(Window_Command.prototype);
 Window_PhoneMain.prototype.constructor = Window_PhoneMain;
 
 Window_PhoneMain.prototype.initialize = function(x, y) {
-    this.initAppIcons();
-    Window_Command.prototype.initialize.call(this, x, y);
+    // this.initAppIcons();
+    if(Utils.RPGMAKER_NAME === 'MZ') {
+        const rect = new Rectangle(x, y, this.windowWidth(), this.windowHeight());
+        Window_Command.prototype.initialize.call(this, rect);
+    } else {
+        Window_Command.prototype.initialize.call(this, x, y);
+    }
     this.checkWindowOpacity();
     this.selectLast();
 };
 
+Window_PhoneMain._lastCommandSymbol = null;
+
+Window_PhoneMain.initCommandPosition = function() {
+    this._lastCommandSymbol = null;
+};
+
+if(Utils.RPGMAKER_NAME === 'MZ') {
+    Window_PhoneMain.prototype.resetFontSettings = function() {
+        Window_Command.prototype.resetFontSettings.call(this);
+        this.contents.fontSize = this.standardFontSize();
+    };
+
+    Window_PhoneMain.prototype.drawItemBackground = function() {
+        if(!RSSD.MP.removeItemBack) {
+            Window_Command.prototype.drawItemBackground.call(this);
+        }
+    };
+}
+
 Window_PhoneMain.prototype.initAppIcons = function() {
     this._iconList = [];
-    var keys = Object.keys(RSSD.MP.app);
-    for(var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var app = RSSD.MP.app[key];
-        if($gameSystem.isPhoneAppVisible(key)) {
-            this._iconList.push(app.iconIndex);
+    for(const app in RSSD.MP.app) {
+        if($gameSystem.isPhoneAppVisible(app)) {
+            this._iconList.push(RSSD.MP.app[app].iconIndex);
         }
     }
 };
 
-Window_PhoneMain.prototype.iconList = function() {
-    return this._iconList;
-};
-
 Window_PhoneMain.prototype.checkWindowOpacity = function() {
     if(!RSSD.MP.showWindowskin) this.opacity = 0;
-    else this.opacity = 255;
+    else this.opacity = 196;
 };
 
 Window_PhoneMain.prototype.itemTextAlign = function() {
@@ -543,61 +601,75 @@ Window_PhoneMain.prototype.iconTextDistance = function() {
 };
 
 Window_PhoneMain.prototype.makeCommandList = function() {
-    var keys = Object.keys(RSSD.MP.app);
-    for(var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        this.makeEachCommand(key);
+    for(const app in RSSD.MP.app) {
+        this.makeEachCommand(app);
     }
 };
 
 Window_PhoneMain.prototype.makeEachCommand = function(key) {
-    var app = RSSD.MP.app[key];
+    const appData = RSSD.MP.app[key];
     if($gameSystem.isPhoneAppVisible(key)) {
-        this.addCommand(app.name, 'phoneApp-'+key, true);
+        this.addCommand(appData.name, 'phoneApp-'+key, true);
     }
 };
 
 Window_PhoneMain.prototype.drawItem = function(index) {
-    var rect = this.itemRectForText(index);
-    this.drawItemInitStyle(index);
-    this.drawItemIcon(index, rect);
-    this.drawItemAPPName(index, rect);
+    if(Utils.RPGMAKER_NAME === 'MZ') {
+        const rect = this.itemRect(index);
+        this.drawItemInitStyle(index);
+        this.drawItemIcon(index, rect);
+        this.drawItemAPPName(index, rect);
+    } else {
+        const rect = this.itemRectForText(index);
+        this.drawItemInitStyle(index);
+        this.drawItemIcon(index, rect);
+        this.drawItemAPPName(index, rect);
+    }
 };
 
 Window_PhoneMain.prototype.drawItemInitStyle = function(index) {
-    var color = this.normalColor();
+    const color = Utils.RPGMAKER_NAME === 'MZ' ? ColorManager.normalColor() : this.normalColor();
     this.changeTextColor(color);
     this.changePaintOpacity(this.isCommandEnabled(index));
 };
 
 Window_PhoneMain.prototype.drawItemIcon = function(index, rect) {
-    var ix = (rect.width - this.iconDrawingWidth()) / 2; // Offset
-    var iy = (this.lineHeight() - (this.iconDrawingHeight() + this.standardFontSize() + this.iconTextDistance())) / 2 + this.iconTextDrawingOffset();
-    this.drawIconEx(this.iconList()[index],rect.x+ix,rect.y+iy,this.iconDrawingWidth(),this.iconDrawingHeight(), RSSD.MP.appIconset);
+    const ix = (rect.width - this.iconDrawingWidth()) / 2; // Offset
+    const iy = (this.lineHeight() - (this.iconDrawingHeight() + this.standardFontSize() + this.iconTextDistance())) / 2 + this.iconTextDrawingOffset();
+    this.drawIconEx(this._iconList[index],rect.x+ix,rect.y+iy,this.iconDrawingWidth(),this.iconDrawingHeight(), RSSD.MP.appIconset);
 };
 
 Window_PhoneMain.prototype.drawItemAPPName = function(index, rect) {
-    var align = this.itemTextAlign();
-    var ty = this.iconDrawingHeight() / 2 + this.iconTextDrawingOffset() + this.iconTextDistance();
+    const align = this.itemTextAlign();
+    const ty = this.iconDrawingHeight() / 2 + this.iconTextDrawingOffset() + this.iconTextDistance();
     this.drawText(this.commandName(index),rect.x,rect.y+ty,rect.width,align);
 };
 
-Window_PhoneMain.prototype.drawIconEx = function(iconIndex, x, y, dw, dh, fileName='IconSet', w=Window_Base._iconWidth, h=Window_Base._iconHeight) {
-    var bitmap = ImageManager.loadSystem(fileName);
-    var pw = w || Window_Base._iconWidth;
-    var ph = h || Window_Base._iconHeight;
-    var sx = iconIndex % 16 * pw;
-    var sy = Math.floor(iconIndex / 16) * ph;
-    this.contents.blt(bitmap,sx,sy,pw,ph,x,y,dw,dh);
+Window_PhoneMain.prototype.drawIconEx = function(iconIndex, x, y, dw, dh, fileName='IconSet', w, h) {
+    const bitmap = ImageManager.loadSystem(fileName);
+    bitmap.addLoadListener(()=>{
+        const nw = Math.floor(bitmap.width / 16);
+        const nh = nw;
+        const pw = w || nw || Window_Base._iconWidth || ImageManager.standardIconWidth;
+        const ph = h || nh || Window_Base._iconHeight || ImageManager.standardIconHeight;
+        const sx = iconIndex % 16 * pw;
+        const sy = Math.floor(iconIndex / 16) * ph;
+        this.contents.blt(bitmap,sx,sy,pw,ph,x,y,dw,dh);
+    });
 };
 
 Window_PhoneMain.prototype.processOk = function() {
-    this._lastCommandSymbol = this.currentSymbol();
+    Window_PhoneMain._lastCommandSymbol = this.currentSymbol();
     Window_Command.prototype.processOk.call(this);
 };
 
 Window_PhoneMain.prototype.selectLast = function() {
-    this.selectSymbol(this._lastCommandSymbol);
+    this.selectSymbol(Window_PhoneMain._lastCommandSymbol);
+};
+
+Window_PhoneMain.prototype.refresh = function() {
+    this.initAppIcons();
+    Window_Command.prototype.refresh.call(this);
 };
 
 //=============================================================================
@@ -619,18 +691,26 @@ Scene_MobilePhone.prototype.initialize = function() {
 Scene_MobilePhone.prototype.create = function() {
     Scene_MenuBase.prototype.create.call(this);
     this.createPhoneWindow();
-    this.createMaskLayer();
+    this.createPhoneMaskLayer();
+};
+
+let __RSSD_MP_Scene_MobilePhone_createWindowLayer = Scene_MobilePhone.prototype.createWindowLayer;
+Scene_MobilePhone.prototype.createWindowLayer = function() {
+    this.createPhoneBackLayer();
+    __RSSD_MP_Scene_MobilePhone_createWindowLayer.call(this);
 };
 
 Scene_MobilePhone.prototype.createPhoneWindow = function() {
     this._phoneWindow = new Window_PhoneMain(RSSD.MP.windowX, RSSD.MP.windowY);
-    var keys = Object.keys(RSSD.MP.app);
-    for(var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        this.setEachAppHandler(key);
-    }
+    this.assignPhoneAppHandlers();
     this._phoneWindow.setHandler('cancel',this.popScene.bind(this));
     this.addWindow(this._phoneWindow);
+};
+
+Scene_MobilePhone.prototype.assignPhoneAppHandlers = function() {
+    for(const app in RSSD.MP.app) {
+        this.setEachAppHandler(app);
+    }
 };
 
 Scene_MobilePhone.prototype.setEachAppHandler = function(key) {
@@ -640,11 +720,10 @@ Scene_MobilePhone.prototype.setEachAppHandler = function(key) {
 };
 
 Scene_MobilePhone.prototype.refreshApps = function() {
+    this._appFunction = null;
     this._appFunction = {};
-    var keys = Object.keys(RSSD.MP.app);
-    for(var i = 0; i < keys.length; i++) {
-        var key = keys[i]
-        this._appFunction[key] = new Function('this.generateApp("'+key+'")');
+    for(const app in RSSD.MP.app) {
+        this._appFunction[app] = new Function('this.generateApp("'+app+'")');
     }
 };
 
@@ -678,18 +757,13 @@ Scene_MobilePhone.prototype.generateApp = function(key) {
     };
 };
 
-Scene_MobilePhone.prototype.createBackground = function() {
-    Scene_MenuBase.prototype.createBackground.call(this);
-    this.drawPhoneBackground();
-};
-
-Scene_MobilePhone.prototype.drawPhoneBackground = function() {
+Scene_MobilePhone.prototype.createPhoneBackLayer = function() {
     this._phoneBack = new Sprite();
     this._phoneBack.anchor.x = 0.5;
     this._phoneBack.anchor.y = 0.5;
-    var key = $gameSystem.getPhoneLayout();
+    const key = $gameSystem.currentPhoneLayout();
     if(key) {
-        var layout = RSSD.MP.layout[key];
+        const layout = RSSD.MP.layout[key];
         if(layout.backBitmap) {
             this._phoneBack.bitmap = ImageManager.loadBitmap('img/phones/', layout.backBitmap);
             this._phoneBack.x = isNaN(+layout.backX) ? eval(layout.backX) : +layout.backX;
@@ -697,16 +771,16 @@ Scene_MobilePhone.prototype.drawPhoneBackground = function() {
             this._phoneBack.blendMode = layout.backBlendMode;
         }
     }
-    this._backgroundSprite.addChild(this._phoneBack);
+    this.addChild(this._phoneBack);
 };
 
-Scene_MobilePhone.prototype.createMaskLayer = function() {
+Scene_MobilePhone.prototype.createPhoneMaskLayer = function() {
     this._phoneMask = new Sprite();
     this._phoneMask.anchor.x = 0.5;
     this._phoneMask.anchor.y = 0.5;
-    var key = $gameSystem.getPhoneLayout();
+    const key = $gameSystem.currentPhoneLayout();
     if(key) {
-        var layout = RSSD.MP.layout[key];
+        const layout = RSSD.MP.layout[key];
         if(layout.maskBitmap) {
             this._phoneMask.bitmap = ImageManager.loadBitmap('img/phones/', layout.maskBitmap);
             this._phoneMask.x = isNaN(+layout.maskX) ? eval(layout.maskX) : +layout.maskX;
@@ -718,30 +792,54 @@ Scene_MobilePhone.prototype.createMaskLayer = function() {
 };
 
 /* 插件指令 */
-var __Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    __Game_Interpreter_pluginCommand.call(this, command, args);
-    if(command.toLowerCase() === '::rssd_mp') {
-        switch(args[0].toLowerCase()) {
-            case 'open':
-            case '打开手机':
-                SceneManager.push(Scene_MobilePhone);
-                break;
-            case 'setlayout':
-            case '设置样式':
-                var key = args[1] || null;
-                $gameSystem.setPhoneLayout(key);
-                break;
-            case 'installApp':
-            case '安装应用':
-                var key = args[1];
-                $gameSystem.setPhoneAppVisibility(key, true);
-                break;
-            case 'uninstallApp':
-            case '卸载应用':
-                var key = args[1];
-                $gameSystem.setPhoneAppVisibility(key, false);
-                break;
+if(Utils.RPGMAKER_NAME === 'MZ') {
+    PluginManager.registerCommand(RSSD.MP.pluginName, '打开手机', (args)=>{
+        SceneManager.push(Scene_MobilePhone);
+    });
+    PluginManager.registerCommand(RSSD.MP.pluginName, '设置手机样式', (args)=>{
+        const key = args['样式关键字'];
+        if(key) {
+            $gameSystem.setPhoneLayout(key);
         }
-    }
-};
+    });
+    PluginManager.registerCommand(RSSD.MP.pluginName, '安装应用', (args)=>{
+        const key = args['APP关键字'];
+        if(key) {
+            $gameSystem.setPhoneAppVisibility(key, true);
+        }
+    });
+    PluginManager.registerCommand(RSSD.MP.pluginName, '卸载应用', (args)=>{
+        const key = args['APP关键字'];
+        if(key) {
+            $gameSystem.setPhoneAppVisibility(key, false);
+        }
+    });
+} else {
+    let __RSSD_MP_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+    Game_Interpreter.prototype.pluginCommand = function(command, args) {
+        __RSSD_MP_Game_Interpreter_pluginCommand.call(this, command, args);
+        if(command.toLowerCase() === '::rssd_mp') {
+            switch(args[0].toLowerCase()) {
+                case 'open':
+                case '打开手机':
+                    SceneManager.push(Scene_MobilePhone);
+                    break;
+                case 'setlayout':
+                case '设置样式':
+                    var key = args[1] || null;
+                    $gameSystem.setPhoneLayout(key);
+                    break;
+                case 'installApp':
+                case '安装应用':
+                    var key = args[1];
+                    $gameSystem.setPhoneAppVisibility(key, true);
+                    break;
+                case 'uninstallApp':
+                case '卸载应用':
+                    var key = args[1];
+                    $gameSystem.setPhoneAppVisibility(key, false);
+                    break;
+            }
+        }
+    };
+}
