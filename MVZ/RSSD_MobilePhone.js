@@ -545,7 +545,7 @@ Window_PhoneMain.prototype.initAppIcons = function() {
 
 Window_PhoneMain.prototype.checkWindowOpacity = function() {
     if(!RSSD.MP.showWindowskin) this.opacity = 0;
-    else this.opacity = 196;
+    else this.opacity = 192;
 };
 
 Window_PhoneMain.prototype.itemTextAlign = function() {
