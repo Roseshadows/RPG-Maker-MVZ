@@ -4,7 +4,8 @@
 |插件名|插件功能|
 |:----:|:-----|
 |**[FormationSystem_Core.js](./MVZ/FormationSystem/FormationSystem_Core.js)**|<战斗> 战斗阵列系统的核心插件。插件引入了前后排的概念，前排会优先于后排受到技能效果的影响，即插即用。详情可看插件帮助。前后排同样影响敌人敌群，可以通过在数据库书写标签来设置。技能默认作用于前排，不过允许将技能设为仅作用于后排或作用于前后排全体的范围。|
-|**[BitmapExtension.js](./MVZ/BitmapExtension.js)**|扩展位图绘制的形状。方法有外框线、填充、渐变填充。目前包括：圆角矩形。|
+|**[BitmapExtension.js](./MVZ/BitmapExtension.js)**|<基础> 扩展位图绘制的形状。方法有外框线、填充、渐变填充。形状目前包括：圆角矩形。|
+|**[EasingExtension.js](./MVZ/EasingExtension.js)**|<基础> 扩展缓动函数（Easings），用于写在update里。详情请看插件帮助。|
 |**[RSSD_AutoMessageName.js](./MVZ/RSSD_AutoMessageName.js)**|<对话> 提供根据脸图自动绘制角色名称的功能。|
 |**[RSSD_CEFindIdByName.js](./MVZ/RSSD_CEFindIdByName.js)**|<工具> 使用脚本调用公共事件时可以输入公共事件名称。|
 |**[RSSD_ExtraLineWrap.js](./MVZ/RSSD_ExtraLineWrap.js)**|<界面> 使用标签可以设置三行或三行以上的帮助窗口文本。功能和用法等同于 YEP_MessageCore.js 里的 <LINEBREAK> 。|
