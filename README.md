@@ -8,7 +8,7 @@
 |**[EasingExtension.js](./MVZ/EasingExtension.js)**|<基础> 扩展缓动函数（Easings），用于写在update里。详情请看插件帮助。|
 |**[RSSD_AutoMessageName.js](./MVZ/RSSD_AutoMessageName.js)**|<对话> 提供根据脸图自动绘制角色名称的功能。|
 |**[RSSD_CEFindIdByName.js](./MVZ/RSSD_CEFindIdByName.js)**|<工具> 使用脚本调用公共事件时可以输入公共事件名称。|
-|**[RSSD_ExtraLineWrap.js](./MVZ/RSSD_ExtraLineWrap.js)**|<界面> 使用标签可以设置三行或三行以上的帮助窗口文本。功能和用法等同于 YEP_MessageCore.js 里的 <LINEBREAK> 。|
+|**[RSSD_ExtraLineWrap.js](./MVZ/RSSD_ExtraLineWrap.js)**|<界面> 使用标签可以设置三行或三行以上的帮助窗口文本。功能和用法等同于 YEP_MessageCore.js 里的 \<LINEBREAK\> 。|
 |**[RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js)**|<玩法> 通过标签为角色/敌人自定义额外的隐藏属性。属性可绑定在角色、敌人、职业、武器、防具、物品、技能、状态共8种数据库类型，MV工程通过YEP_StatusMenuCore.js还可以将隐藏属性显示出来。|
 |**[RSSD_HP_Addon_ParamGrowth.js](./MVZ/RSSD_HP_Addon_ParamGrowth.js)**|<玩法> [RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js) 的扩展插件。允许开发者设置成长类型，将隐藏属性设为可成长的属性。|
 |**[RSSD_MessageWindowSound.js](./MVZ/RSSD_MessageWindowSound.js)**|<对话> 切换对话时播放一次指定的音效。|
