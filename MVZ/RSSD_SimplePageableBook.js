@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 1.2.5 - 简易可翻页书籍
+ * @plugindesc 1.2.7 - 简易可翻页书籍
  * @author Rose_shadows
  * @target MV MZ
  * @help
@@ -22,16 +22,50 @@
  * 例如单独设置某一页面不绘制页码，临时将某页面的页码设为指定数字，
  * 或者使用CSS格式颜色作为文字颜色等。
  * 
+ * 该插件还同时兼容 MV 的 YEP 消息核心插件和 MZ 的 Visu 消息核心插件，
+ * 可以为书籍内容使用自动换行功能。详情见下记“自动换行功能”部分。
+ * 
  * 
  * === 使用指引 / 注意事项 ===
  * 
+ * 要使用该插件，建议为每本书准备一张摊开的书的背景图，
+ * 例如 Pandamaru 的素材（包含Google Drive链接的素材网站，Eigenes文件夹）：
+ * https://gamedevcafe.de/forum/index.php?thread/126-pandamaru-s-ressources/
+ * 
+ * 1. 书籍注册
+ * 
  * 该插件使用插件参数管理器来管理书籍数据。
- * 在插件参数中预注册好书籍，设置好关键字，
- * 就可以用插件指令来设置和打开书籍了。
  * 
- * 注意！每本书籍的关键字必须是独一无二的。
+ * 在插件参数“书籍注册”中预注册好书籍，设置好关键字，在参数“内容”里
+ * 写好内容，就可以用插件指令来设置和打开书籍了。
  * 
- * 此外还可以通过插件指令设置各项参数。详情请看“插件指令”一栏。
+ * 关于内容的设置，详情见之后讲解的“插件参数 - 书籍内容”及后续部分。
+ * 
+ * 注意！每本书籍的关键字相较其他书籍必须是独一无二的。
+ * 
+ * 2. 书籍样式注册
+ * 
+ * 默认情况下，没有样式的书籍的外观非常简陋。
+ * 所以，还需要注册新的书籍样式。
+ * 
+ * 在插件参数“书籍样式集”中，可以设置书籍的样式(模板)，
+ * 方便一次性调用所有所需的设置。
+ * 
+ * 打开插件参数“书籍样式集”，设置好关键字，再在参数“背景图片”设置好
+ * 摊开的书的背景图，即可完成最基础的书籍样式。
+ * 
+ * 注意！书籍样式的关键字相较其他样式也必须是独一无二的。
+ * 
+ * 注册好样式后，可以将书籍样式绑定到书籍上。一种样式可以绑定多本书籍。
+ * 打开插件参数“书籍注册”，将样式的关键字填入参数“关联样式”即可完成绑定。
+ * 使用插件指令“设置并打开书籍”时，就会自动使用该样式。
+ * 
+ * 若背景和书籍内容没有对齐，根据游戏内的表现调整背景偏移、页面窗口宽高、
+ * 左右页面间距等参数即可。
+ * 
+ * 除此以外，在样式里还可以设置许多效果，包括页码类型和位置、文本颜色、
+ * 文字是否描边、文本字体、是否自动换行（需外部插件支持）、翻页音效。
+ * 关于自动换行功能，详情见之后讲解的“自动换行功能”部分。
  * 
  * 
  * === 插件参数 - 书籍内容 ===
@@ -146,16 +180,30 @@
  * 记得要将图像放在 img/system/ 文件夹下。
  * 
  * 
- * == 插件参数 - 书籍样式集 ==
+ * == 插件参数 - 翻页按钮 ==
  * 
- * 在插件参数“书籍样式集”中，可以设置书籍的样式(模板)，方便一次性调用所有所需的
- * 设置。
+ * 从版本 1.2.4 起，可以为书籍设置一对左右翻页按钮。
+ * 翻页按钮图像需要放在 img/system/ 文件夹下，
+ * 图像格式为闲置状态和点击状态上下拼成一列的格式。
+ * 该功能默认禁用。
  * 
  * 
  * === 触摸滑动翻页功能 ===
  * 
  * 配合 SRD_SwipeInput.js，可以实现触摸滑动翻页功能。
  * 请将该插件放到 SRD_SwipeInput.js 插件之下。
+ * 
+ * 
+ * === 自动换行功能 ===
+ * 
+ * 配合 YEP_MessageCore.js（MV）和 VisuMZ_1_MessageCore.js（MZ）插件，
+ * 可以实现书籍内容自动换行。
+ * 在自定义书籍样式时可以选择是否开启或关闭。默认为关闭。
+ * 使用时，请将该插件放到 YEP 或 Visu 的消息核心插件之下。
+ * 
+ * ！注意！MV 的 YEP_MessageCore.js 原版不支持中文换行，
+ * 如有需要，可下载以下补丁插件修复这个问题：
+ * https://raw.githubusercontent.com/Roseshadows/RPG-Maker-MVZ/refs/heads/master/MV/YEP_MessageCore_WordWrapPatch.js
  * 
  * 
  * === 插件指令 (MV) ===
@@ -182,7 +230,8 @@
  *   若显示，则将 {SHOW?} 替换为 true，若隐藏，则设为 false。
  * 
  *   ::RSSD_SPB 打开书籍
- * - 打开可翻页书籍界面。必须先用 ::RSSD_SPB set {KEY} 设置书籍内容。
+ * - 打开可翻页书籍界面。
+ *   必须先用 ::RSSD_SPB 设置书籍 {KEY} 设置书籍内容。
  * 
  * 
  * === 事件脚本 ===
@@ -249,8 +298,10 @@
  * 1.2.2 - 优化了插件的代码，放弃对RMMV1.6.0版本以下的维护，新增书籍初始页和
  *         临时更改页面绘制的页码的功能。
  * 1.2.4 - 新增用游戏按钮翻页和为书籍设置字体的功能。
- * 1.2.5 - 对于MZ，确认了与 VisuMZ_1_MessageCore.js 的兼容性，新增自动换行功
- *         能（需要消息核心插件），修复书籍最多两页时显示翻页提示文本的问题。
+ * 1.2.5 - 确认了与 VisuMZ_1_MessageCore.js 的兼容性，新增自动换行功能
+ *         （需要消息核心插件），修复书籍最多两页时显示翻页提示文本的问题。
+ * 1.2.7 - 确认了与 YEP_MessageCore.js 的兼容性，新增为书籍文本设置字号和
+ *         行高的功能。
  * 
  * 
  * 
@@ -665,6 +716,18 @@
  * @desc 书籍文本是否描边？
  * @default false
  * 
+ * @param Text Size
+ * @text 文本字号
+ * @parent === 文本设置 ===
+ * @desc 文本的字号。不填则为系统默认字号。
+ * @default 
+ * 
+ * @param Line Height
+ * @text 文本行高
+ * @parent === 文本设置 ===
+ * @desc 文本的行高。可以控制文本的行间距。不填则为系统默认行高。
+ * @default 
+ * 
  * @param === 字体设置 ===
  * 
  * @param Font File
@@ -674,7 +737,7 @@
  * @default 
  * 
  * @param === 自动换行 ===
- * @default = VisuMZ_1_MessageCore.js 兼容 =
+ * @default = YEP & Visu 消息核心 兼容 =
  * 
  * @param Enable Wordwrap
  * @text 是否启用自动换行
@@ -682,7 +745,7 @@
  * @type boolean
  * @on 自动换行
  * @off 不自动换行
- * @desc 对于使用了该样式的书籍文字，是否启用自动换行？需要Visu的消息核心。
+ * @desc 对于使用了该样式的书籍文字，是否启用自动换行？需要YEP或Visu的消息核心。
  * @default false
  * 
  * @param === 音效设置 ===
@@ -772,6 +835,8 @@ arr2.forEach((item)=>{
     o.pageNumPos   = +obj['Page Pos'];
     o.textColor    = obj['Text Color'] !== '' ? +obj['Text Color'] : null;
     o.hasOutline   = obj['Text Outline'] === 'true';
+    o.textSize     = +obj['Text Size'];
+    o.lineHeight   = +obj['Line Height'];
     o.fontFileName = obj['Font File'] || '';
     o.wordwrap     = obj['Enable Wordwrap'] === 'true';
     o.seName       = obj['Se'] || null;
@@ -806,7 +871,7 @@ RSSD.SPB.disablePreload = parameters['Disable Preload'] === 'true';
 RSSD.SPB.fontPrefix = 'pageable-book-font-';
 
 let isMZ = Utils.RPGMAKER_NAME === 'MZ';
-let isVisuMZMessageCoreInstalled = $plugins.some(plugin => plugin.name === 'VisuMZ_1_MessageCore');  // for VisuMZ_1_MessageCore.js compability
+let isMessageCoreInstalled = (isMZ && Imported.VisuMZ_1_MessageCore) || (!isMZ && Imported.YEP_MessageCore);  // for VisuMZ_1_MessageCore.js compability
 
 //-----------------------------------------------------------------------------
 // Scene_Boot
@@ -883,6 +948,8 @@ Game_System.prototype.initPageableBookLayoutData = function() {
     data.pageNumPos   = RSSD.SPB.pageNumPos;
     data.textColor    = RSSD.SPB.textColor;
     data.hasOutline   = RSSD.SPB.hasOutline;
+    data.textSize     = 0;
+    data.lineHeight   = 0;
     data.bg           = RSSD.SPB.bg;
     data.bgX          = RSSD.SPB.bgX;
     data.bgY          = RSSD.SPB.bgY;
@@ -942,6 +1009,14 @@ Game_System.prototype.pageableTextColor = function() {
     return this._pageableBookData.textColor;
 };
 
+Game_System.prototype.pageableTextSize = function() {
+    return this._pageableBookData.textSize;
+};
+
+Game_System.prototype.pageableLineHeight = function() {
+    return this._pageableBookData.lineHeight;
+};
+
 Game_System.prototype.pageableSeName = function() {
     return this._pageableBookData.seName;
 };
@@ -967,7 +1042,7 @@ Game_System.prototype.isPageableTextOutlineEnabled = function() {
 };
 
 Game_System.prototype.isPageableWordWrapEnabled = function() {
-    return this._pageableBookData.wordwrap && isVisuMZMessageCoreInstalled;
+    return this._pageableBookData.wordwrap && isMessageCoreInstalled;
 };
 
 Game_System.prototype.isShowPageableWindows = function() {
@@ -1206,6 +1281,10 @@ Window_PageableBook_Page.prototype.resetFontSettings = function() {
     this.contents.fontFace = this.defaultFontFace();
 };
 
+Window_PageableBook_Page.prototype.lineHeight = function() {
+    return $gameSystem.pageableLineHeight() || Window_Base.prototype.lineHeight.call(this);
+};
+
 Window_PageableBook_Page.prototype.startPageNum = function() {
     return 1;
 };
@@ -1235,12 +1314,8 @@ Window_PageableBook_Page.prototype.refresh = function() {
 };
 
 Window_PageableBook_Page.prototype.drawContents = function() {
-    // do not rearrange
-    const RE_C = /<t>([^]*?)<\/t>/gi;
-    const isEval = !!this._text.match(RE_C);
-    const texts = isEval ? String(this._text.match(RE_C)).replace('<t>', '').replace('<\/t>', '') : this._text;
     this.applyEvalBefore();
-    this.applyContents(texts);
+    this.applyContents();
     this.applyEvalAfter();
 };
 
@@ -1253,7 +1328,11 @@ Window_PageableBook_Page.prototype.applyEvalBefore = function() {
     }
 };
 
-Window_PageableBook_Page.prototype.applyContents = function(texts) {
+Window_PageableBook_Page.prototype.applyContents = function() {
+    const RE_C = /<t>([^]*?)<\/t>/gi;
+    const isEval = !!this._text.match(RE_C);
+    let texts = isEval ? String(this._text.match(RE_C)).replace('<t>', '').replace('<\/t>', '') : this._text;
+    texts = this.processCharacterEffect(texts);
     this.drawTextEx(texts, 0, 0);
 };
 
@@ -1296,6 +1375,17 @@ Window_PageableBook_Page.prototype.applyPageNum = function(pageText, orient='cen
         this.contents.fontSize += 10;
         this.resetTextColor();
     }
+};
+
+Window_PageableBook_Page.prototype.processCharacterEffect = function(texts) {
+    if($gameSystem.isPageableWordWrapEnabled()) {
+        texts = '<WordWrap>'+texts;
+    }
+    if(isMessageCoreInstalled && !$gameSystem.isPageableTextOutlineEnabled()) {
+        const name = isMZ ? 'OutlineWidth' : 'ow';
+        texts = '\\'+name+'[0]' + texts;
+    }
+    return texts;
 };
 
 Window_PageableBook_Page.prototype.processEscapeCharacter = function(code, textState) {
@@ -1356,20 +1446,26 @@ Window_PageableBook_Page.prototype.obtainEscapeStringParam = function(textState)
 };
 
 if(isMZ) {
+    let __RSSD_SPB_Window_PageableBook_Page_resetFontSettings = Window_PageableBook_Page.prototype.resetFontSettings;
+    Window_PageableBook_Page.prototype.resetFontSettings = function() {
+        __RSSD_SPB_Window_PageableBook_Page_resetFontSettings.call(this);
+        this.contents.fontSize = $gameSystem.pageableTextSize() || $gameSystem.mainFontSize();
+    };
+
     Window_PageableBook_Page.prototype.textColor = function(n) {
         return ColorManager.textColor(n);
     };
     
     let __RSSD_SPB_Window_PageableBook_Page_applyContents = Window_PageableBook_Page.prototype.applyContents;
     Window_PageableBook_Page.prototype.applyContents = function(texts) {
-        if($gameSystem.isPageableWordWrapEnabled()) {
-            texts = '<WordWrap>'+texts;
-        }
         texts = '\\C[' + $gameSystem.pageableTextColor() + ']' + texts; // normalColor is invalid
-        if(isVisuMZMessageCoreInstalled && !$gameSystem.isPageableTextOutlineEnabled()) {
-            texts = '\\OutlineWidth[0]' + texts;
-        }
         __RSSD_SPB_Window_PageableBook_Page_applyContents.call(this, texts);
+    };
+}
+
+if(!isMZ) {
+    Window_PageableBook_Page.prototype.standardFontSize = function() {
+        return $gameSystem.pageableTextSize() || Window_Base.prototype.standardFontSize.call(this);
     };
 }
 

@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 2.3.0 - 简易可滚动信息板 (读报系统)
+ * @plugindesc 2.3.1 - 简易可滚动信息板 (读报系统)
  * @author 离影玫 | Rose_shadows
  * @target MV MZ
  * @url https://github.com/Roseshadows
@@ -44,6 +44,7 @@
  * 2.3.0 - 调整了部分代码的结构，修复了用Esc键或鼠标右键关闭信息板时会
  *         调出主菜单的Bug，新增打开/关闭信息板时播放指定音效的功能，
  *         修复关闭信息板时窗口直接消失而不是播放关闭动画的Bug。
+ * 2.3.1 - 新增在插件参数设置信息板窗口不透明度的功能。
  * 
  * @param === 基础设置 ===
  * 
@@ -53,6 +54,13 @@
  * @type switch
  * @desc 启用信息板功能的开关。默认为 开关#19 。
  * @default 19
+ * 
+ * @param Window Opacity
+ * @text 信息板窗口不透明度
+ * @parent === 基础设置 ===
+ * @type number
+ * @desc 信息板窗口的不透明度。默认为192。
+ * @default 192
  * 
  * @param Default Width
  * @text 信息板默认宽度
@@ -145,27 +153,29 @@ Imported.RSSD_SimpleScrollableInfoBoard = true;
 var RSSD = RSSD || {};
 RSSD.SimpleScrollableInfoBoard = {};
 var parameters = PluginManager.parameters('RSSD_SimpleScrollableInfoBoard');
-RSSD.SimpleScrollableInfoBoard.switchId          = +parameters['Enable Switch ID'] || 19;
-RSSD.SimpleScrollableInfoBoard.width             = +parameters['Default Width'] || 400;
-RSSD.SimpleScrollableInfoBoard.height            = +parameters['Default Height'] || 500;
-RSSD.SimpleScrollableInfoBoard.varWidth          = +parameters['Width Variable ID'] || 19;
-RSSD.SimpleScrollableInfoBoard.varHeight         = +parameters['Height Variable ID'] || 20;
+var infoBoard = RSSD.SimpleScrollableInfoBoard;
+infoBoard.switchId          = +parameters['Enable Switch ID'] || 19;
+infoBoard.windowOpacity     = +parameters['Window Opacity'] || 192;
+infoBoard.width             = +parameters['Default Width'] || 400;
+infoBoard.height            = +parameters['Default Height'] || 500;
+infoBoard.varWidth          = +parameters['Width Variable ID'] || 19;
+infoBoard.varHeight         = +parameters['Height Variable ID'] || 20;
 
 var temp_obj1 = JSON.parse(parameters['Open SE'] || '{}');
-RSSD.SimpleScrollableInfoBoard.isOpenSEEnabled = parameters['Play Open SE'] === 'true';
-RSSD.SimpleScrollableInfoBoard.openSeName   = temp_obj1['SE Name'] || '';
-RSSD.SimpleScrollableInfoBoard.openSeVolume = +(temp_obj1['SE Volume'] || '90');
-RSSD.SimpleScrollableInfoBoard.openSePitch  = +(temp_obj1['SE Pitch'] || '100');
-RSSD.SimpleScrollableInfoBoard.openSePan    = +(temp_obj1['SE Pan'] || '100');
+infoBoard.isOpenSEEnabled = parameters['Play Open SE'] === 'true';
+infoBoard.openSeName   = temp_obj1['SE Name'] || '';
+infoBoard.openSeVolume = +(temp_obj1['SE Volume'] || '90');
+infoBoard.openSePitch  = +(temp_obj1['SE Pitch'] || '100');
+infoBoard.openSePan    = +(temp_obj1['SE Pan'] || '100');
 
 var temp_obj2 = JSON.parse(parameters['Close SE'] || '{}');
-RSSD.SimpleScrollableInfoBoard.isCloseSEEnabled = parameters['Play Close SE'] === 'true';
-RSSD.SimpleScrollableInfoBoard.closeSeName   = temp_obj2['SE Name'] || '';
-RSSD.SimpleScrollableInfoBoard.closeSeVolume = +(temp_obj2['SE Volume'] || '90');
-RSSD.SimpleScrollableInfoBoard.closeSePitch  = +(temp_obj2['SE Pitch'] || '100');
-RSSD.SimpleScrollableInfoBoard.closeSePan    = +(temp_obj2['SE Pan'] || '100');
+infoBoard.isCloseSEEnabled = parameters['Play Close SE'] === 'true';
+infoBoard.closeSeName   = temp_obj2['SE Name'] || '';
+infoBoard.closeSeVolume = +(temp_obj2['SE Volume'] || '90');
+infoBoard.closeSePitch  = +(temp_obj2['SE Pitch'] || '100');
+infoBoard.closeSePan    = +(temp_obj2['SE Pan'] || '100');
 
-RSSD.SSIB = JSON.parse(JSON.stringify(RSSD.SimpleScrollableInfoBoard));
+RSSD.SSIB = infoBoard;
 
 //=============================================================================
 // Window_ScrollText
@@ -224,7 +234,7 @@ Window_ScrollText.prototype.needsInfoBoardTransBack = function() {
 };
 
 Window_ScrollText.prototype.refreshLayout_InfoWindowBack = function() {
-    this.opacity = 192;
+    this.opacity = RSSD.SSIB.windowOpacity || 192;
     this.openness = 0;
     this.width = this.windowWidth();
     this.height = this.windowHeight();
