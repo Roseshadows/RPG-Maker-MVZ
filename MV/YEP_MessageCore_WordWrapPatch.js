@@ -2,9 +2,9 @@
  * @plugindesc YEP消息核心 - CJK字符自动换行补丁
  * @author Rose_shadows
  * @help
- * 修复 YEP_MessageCore.js 无法对CJK字符自动换行的错误。
+ * 修复 YEP_MessageCore.js 无法对CJK字符自动换行的问题。
  * 
- * 将该插件放在消息核心插件之后。
+ * 请将该插件放在 YEP_MessageCore.js 之后。
  */
 if(Imported.YEP_MessageCore) {
 
@@ -29,5 +29,6 @@ if(Imported.YEP_MessageCore) {
         const size = this.textWidthExCheck(word);
         return (size + textState.x > this.wordwrapWidth());
     };
+
 
 }
