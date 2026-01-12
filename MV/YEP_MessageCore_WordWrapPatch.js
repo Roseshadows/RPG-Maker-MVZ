@@ -30,5 +30,4 @@ if(Imported.YEP_MessageCore) {
         return (size + textState.x > this.wordwrapWidth());
     };
 
-
 }
