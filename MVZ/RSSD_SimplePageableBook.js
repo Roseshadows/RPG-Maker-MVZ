@@ -871,14 +871,14 @@ RSSD.SPB.disablePreload = parameters['Disable Preload'] === 'true';
 
 RSSD.SPB.fontPrefix = 'pageable-book-font-';
 
-let isMZ = Utils.RPGMAKER_NAME === 'MZ';
-let isMessageCoreInstalled = (isMZ && Imported.VisuMZ_1_MessageCore) || (!isMZ && Imported.YEP_MessageCore);  // for VisuMZ_1_MessageCore.js compability
+RSSD.SPB.isMZ = Utils.RPGMAKER_NAME === 'MZ';
+RSSD.SPB.isMessageCoreInstalled = (RSSD.SPB.isMZ && Imported.VisuMZ_1_MessageCore) || (!RSSD.SPB.isMZ && Imported.YEP_MessageCore);  // for VisuMZ_1_MessageCore.js compability
 
 //-----------------------------------------------------------------------------
 // Scene_Boot
 //-----------------------------------------------------------------------------
 
-if(isMZ) {
+if(RSSD.SPB.isMZ) {
 
     let __RSSD_SPB_Scene_Boot_loadGameFonts = Scene_Boot.prototype.loadGameFonts;
     Scene_Boot.prototype.loadGameFonts = function() {
@@ -1043,7 +1043,7 @@ Game_System.prototype.isPageableTextOutlineEnabled = function() {
 };
 
 Game_System.prototype.isPageableWordWrapEnabled = function() {
-    return this._pageableBookData.wordwrap && isMessageCoreInstalled;
+    return this._pageableBookData.wordwrap && RSSD.SPB.isMessageCoreInstalled;
 };
 
 Game_System.prototype.isShowPageableWindows = function() {
@@ -1118,7 +1118,7 @@ Game_System.prototype.applyPageableContentsImagePreload = function() {
 // Sprite_PagingButton
 //-----------------------------------------------------------------------------
 
-if(isMZ) {
+if(RSSD.SPB.isMZ) {
 
     function Sprite_PagingButton() {
         this.initialize(...arguments);
@@ -1253,7 +1253,7 @@ Window_PageableBook_Page.prototype = Object.create(Window_Base.prototype);
 Window_PageableBook_Page.prototype.constructor = Window_PageableBook_Page;
 
 Window_PageableBook_Page.prototype.initialize = function(x, y, width, height) {
-    if(isMZ) {
+    if(RSSD.SPB.isMZ) {
         const rect = new Rectangle(x, y, width, height);
         Window_Base.prototype.initialize.call(this, rect);
     } else {
@@ -1270,10 +1270,10 @@ Window_PageableBook_Page.prototype.defaultFontFace = function() {
     const key = $gameSystem.pageableCurrentLayoutKey();
     if(key && RSSD.SPB.layouts[key] && RSSD.SPB.layouts[key].fontFileName) {
         const fontFace = RSSD.SPB.fontPrefix+key;
-        const addition = isMZ ? $gameSystem.mainFontFace() : this.standardFontFace();
+        const addition = RSSD.SPB.isMZ ? $gameSystem.mainFontFace() : this.standardFontFace();
         return fontFace + ', ' + addition;
     }
-    if(isMZ) return $gameSystem.mainFontFace();
+    if(RSSD.SPB.isMZ) return $gameSystem.mainFontFace();
     return this.standardFontFace();
 };
 
@@ -1392,8 +1392,8 @@ Window_PageableBook_Page.prototype.makeWordWrapTag = function(texts) {
 };
 
 Window_PageableBook_Page.prototype.makeOtherTag = function(texts) {
-    if(isMessageCoreInstalled && !$gameSystem.isPageableTextOutlineEnabled()) {
-        const name = isMZ ? 'OutlineWidth' : 'ow';
+    if(RSSD.SPB.isMessageCoreInstalled && !$gameSystem.isPageableTextOutlineEnabled()) {
+        const name = RSSD.SPB.isMZ ? 'OutlineWidth' : 'ow';
         texts = '\\'+name+'[0]' + texts;
     }
     return texts;
@@ -1456,7 +1456,7 @@ Window_PageableBook_Page.prototype.obtainEscapeStringParam = function(textState)
     }
 };
 
-if(isMZ) {
+if(RSSD.SPB.isMZ) {
     let __RSSD_SPB_Window_PageableBook_Page_resetFontSettings = Window_PageableBook_Page.prototype.resetFontSettings;
     Window_PageableBook_Page.prototype.resetFontSettings = function() {
         __RSSD_SPB_Window_PageableBook_Page_resetFontSettings.call(this);
@@ -1474,7 +1474,7 @@ if(isMZ) {
     };
 }
 
-if(!isMZ) {
+if(!RSSD.SPB.isMZ) {
     Window_PageableBook_Page.prototype.standardFontSize = function() {
         return $gameSystem.pageableTextSize() || Window_Base.prototype.standardFontSize.call(this);
     };
@@ -1580,12 +1580,12 @@ Window_PageableBook_Tip.prototype = Object.create(Window_Base.prototype);
 Window_PageableBook_Tip.prototype.constructor = Window_PageableBook_Tip;
 
 Window_PageableBook_Tip.prototype.initialize = function() {
-    const width = isMZ ? Graphics.width : SceneManager._screenWidth;
+    const width = RSSD.SPB.isMZ ? Graphics.width : SceneManager._screenWidth;
     const height = this.fittingHeight(1);
     const x = 0;
-    const screenHeight = isMZ ? Graphics.height : SceneManager._screenHeight;
+    const screenHeight = RSSD.SPB.isMZ ? Graphics.height : SceneManager._screenHeight;
     const y = screenHeight - height;
-    if(isMZ) {
+    if(RSSD.SPB.isMZ) {
         const rect = new Rectangle(x, y, width, height);
         Window_Base.prototype.initialize.call(this, rect);
     } else {
@@ -1631,15 +1631,15 @@ Scene_PageableBook.prototype.initPageableData = function() {
 Scene_PageableBook.prototype.create = function() {
     Scene_MenuBase.prototype.create.call(this);
     this.createWindows();
-    if(!isMZ) this.createButtons();
+    if(!RSSD.SPB.isMZ) this.createButtons();
 };
 
 Scene_PageableBook.prototype.createWindows = function(){
     const widthData = $gameSystem.pageableWindowWidth(), heightData = $gameSystem.pageableWindowHeight();
     const width = typeof(widthData) === 'number' ? widthData : eval($gameSystem.pageableWindowWidth());
     const height = typeof(heightData) === 'number' ? heightData : eval($gameSystem.pageableWindowHeight());
-    const screenWidth = isMZ ? Graphics.width : SceneManager._screenWidth;
-    const screenHeight = isMZ ? Graphics.height : SceneManager._screenHeight;
+    const screenWidth = RSSD.SPB.isMZ ? Graphics.width : SceneManager._screenWidth;
+    const screenHeight = RSSD.SPB.isMZ ? Graphics.height : SceneManager._screenHeight;
     const x = (screenWidth - width*2)/2;
     const y = (screenHeight - height)/2;
     const marginData = $gameSystem.pageableWindowDistance();
@@ -1665,14 +1665,14 @@ Scene_PageableBook.prototype.createTipWindow = function() {
 };
 
 Scene_PageableBook.prototype.createButtons = function() {
-    if(isMZ) Scene_MenuBase.prototype.createButtons.call(this);
+    if(RSSD.SPB.isMZ) Scene_MenuBase.prototype.createButtons.call(this);
     this.createPagingPrevButton();
     this.createPagingNextButton();
 };
 
 Scene_PageableBook.prototype.createPagingPrevButton = function() {
     this._prevButtonSprite = new Sprite_PagingButton('left');
-    if(!isMZ) {
+    if(!RSSD.SPB.isMZ) {
         this._prevButtonSprite.setClickHandler(this.goToPrevPage.bind(this));
     }
     this.addChild(this._prevButtonSprite);
@@ -1680,7 +1680,7 @@ Scene_PageableBook.prototype.createPagingPrevButton = function() {
 
 Scene_PageableBook.prototype.createPagingNextButton = function() {
     this._nextButtonSprite = new Sprite_PagingButton('right');
-    if(!isMZ) {
+    if(!RSSD.SPB.isMZ) {
         this._nextButtonSprite.setClickHandler(this.goToNextPage.bind(this));
     }
     this.addChild(this._nextButtonSprite);
@@ -1708,8 +1708,8 @@ Scene_PageableBook.prototype.initWindowOpacity = function() {
 
 Scene_PageableBook.prototype.initButtonsPlacement = function() {
     const prev = this._prevButtonSprite, next = this._nextButtonSprite;
-    const screenWidth = isMZ ? Graphics.width : SceneManager._screenWidth;
-    const screenHeight = isMZ ? Graphics.height : SceneManager._screenHeight;
+    const screenWidth = RSSD.SPB.isMZ ? Graphics.width : SceneManager._screenWidth;
+    const screenHeight = RSSD.SPB.isMZ ? Graphics.height : SceneManager._screenHeight;
     const margin = 20;
     prev.anchor.x = 0, prev.anchor.y = 0.5, next.anchor.x = 1, next.anchor.y = 0.5;
     prev.x = margin, next.x = screenWidth - margin;
@@ -1857,8 +1857,8 @@ Scene_PageableBook.prototype.createBookBackground = function() {
     }
     this._pageableBookBg.anchor.x = 0.5;
     this._pageableBookBg.anchor.y = 0.5;
-    const screenWidth = isMZ ? Graphics.width : SceneManager._screenWidth;
-    const screenHeight = isMZ ? Graphics.height : SceneManager._screenHeight;
+    const screenWidth = RSSD.SPB.isMZ ? Graphics.width : SceneManager._screenWidth;
+    const screenHeight = RSSD.SPB.isMZ ? Graphics.height : SceneManager._screenHeight;
     this._pageableBookBg.x = screenWidth/2 + ox;
     this._pageableBookBg.y = screenHeight/2 + oy;
     this.addChild(this._pageableBookBg);
@@ -1882,7 +1882,7 @@ Scene_PageableBook.prototype.refreshBgForPaging = function() {
             if(bg) {
                 sprite.bitmap = ImageManager.loadSystem(bg);
             } else {
-                if(isMZ) {
+                if(RSSD.SPB.isMZ) {
                     sprite.bitmap = ImageManager._emptyBitmap;
                 } else {
                     sprite.bitmap = ImageManager.loadEmptyBitmap();
@@ -1903,7 +1903,7 @@ Scene_PageableBook.prototype.saveLastPage = function() {
     $gameSystem.setPageableStartPage(leftPage);
 };
 
-if(isMZ) {
+if(RSSD.SPB.isMZ) {
     let __RSSD_SPB_Scene_PageableBook_createCancelButton = Scene_PageableBook.prototype.createCancelButton;
     Scene_PageableBook.prototype.createCancelButton = function() {
         __RSSD_SPB_Scene_PageableBook_createCancelButton.call(this);
@@ -1979,7 +1979,7 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
     }
 };
 
-if(isMZ) {
+if(RSSD.SPB.isMZ) {
     PluginManager.registerCommand(RSSD.SPB.pluginName, '设置书籍', (args)=>{
         const key = args['书籍关键字'];
         if(key) {
