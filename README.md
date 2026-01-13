@@ -27,7 +27,7 @@
 |**[RSSD_GlobalSwiVar.js](./MZ/RSSD_GlobalSwiVar.js)**|<玩法> 将特定游戏开关和变量设为跨存档的全局开关和变量。搭配这个功能，可以实现多周目流程、通关隐藏、收集成就、跟随剧情改变标题背景等。|
 |**[RSSD_MultiPriorityFade.js](./MZ/RSSD_MultiPriorityFade.js)**|<屏幕效果> 可以选择淡入淡出的层级。默认情况下，淡入淡出只影响背景层 + 图片层（不包括对话框），使用这个插件，不仅可以单独控制这两层，还可以控制整个屏幕层（包括对话框）的淡入淡出效果。|
 |**[RSSD_ReliabilityGauge.js](./MZ/RSSD_ReliabilityGauge.js)**|<玩法> 复刻逆转裁判123样式的可信度血条（右上角每次回答/举证时出现的条）。血条可以用控制字符或插件指令来控制，减少可信度时还会演出预先设好的动画。具体可看插件帮助。插件中使用的 Window_RpGauge.png 参见[这里](./img/RSSD_ReliabilityGauge/Window_RpGauge.png)。|
-|**[RSSD_QoL_RoundedItemBackRect.js](./MZ/RSSD_QoL_RoundedItemBackRect.js)**|<QoL> 将带棱角的矩形指令选项背景更换为圆角矩形。|
+|**[RSSD_QoL_RoundedItemBackRect.js](./MZ/RSSD_QoL_RoundedItemBackRect.js)**|<基础> 将带棱角的矩形指令选项背景更换为圆角矩形。|
 |**[RSSD_SlicingUI.js](./MZ/RSSD_SlicingUI.js)**|<界面> 允许你对窗口皮肤、选择光标、对话暂停光标使用九宫格切片（9-slicing）格式的UI图像。对于示例图，去看 [img/RSSD_SlicingUI/](./img/RSSD_SlicingUI/) 。另外还扩展了Bitmap的方法，提供绘制九宫格、横/纵三宫格格式UI图像的功能。|
 #### 限定 MV
 |插件名|插件功能|
