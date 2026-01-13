@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //==============================================================================
 /*:
- * @plugindesc 1.1.0 - 战斗阵列系统 - 核心
+ * @plugindesc 1.1.1 - 战斗阵列系统 - 核心
  * @author Rose_shadows
  * @target MV MZ
  * @help
@@ -122,6 +122,7 @@
  * 1.0.1 - 添加了与MZ的兼容性。
  * 1.0.2 - 新增函数，更新帮助文档。
  * 1.1.0 - 修复 Bug，添加对 MZ 的兼容性。
+ * 1.1.1 - 修复目标为己方队员的技能实际选择敌方成员作为目标的问题。
  * 
  * @param Max Member
  * @text 前后排槽位数
@@ -245,7 +246,7 @@ Game_Enemy.prototype.rearguardOffsetX = function() {
 // Game_Unit
 //==============================================================================
 
-var __RSSD_FS_C_Game_Unit_initialize = Game_Unit.prototype.initialize;
+let __RSSD_FS_C_Game_Unit_initialize = Game_Unit.prototype.initialize;
 Game_Unit.prototype.initialize = function() {
     __RSSD_FS_C_Game_Unit_initialize.call(this);
     this._formationTargetType = '';
@@ -256,7 +257,7 @@ Game_Unit.prototype.setFormationTargetType = function(type) {
     this._formationTargetType = type;
 };
 
-var __RSSD_FS_C_Game_Unit_aliveMembers = Game_Unit.prototype.aliveMembers;
+let __RSSD_FS_C_Game_Unit_aliveMembers = Game_Unit.prototype.aliveMembers;
 Game_Unit.prototype.aliveFormationMembers = function() {
     return __RSSD_FS_C_Game_Unit_aliveMembers.call(this).sort((a, b)=>{
         return a.formationSlotIndex() - b.formationSlotIndex();
@@ -277,7 +278,7 @@ Game_Unit.prototype.needsAliveAll = function() {
     return this._formationTargetType === 'all';
 };
 
-var __RSSD_FS_C_Game_Unit_deadMembers = Game_Unit.prototype.deadMembers;
+let __RSSD_FS_C_Game_Unit_deadMembers = Game_Unit.prototype.deadMembers;
 Game_Unit.prototype.deadFormationMembers = function() {
     return __RSSD_FS_C_Game_Unit_deadMembers.call(this).sort((a, b)=>{
         return a.formationSlotIndex() - b.formationSlotIndex();
@@ -300,8 +301,8 @@ Game_Unit.prototype.needsDeadAll = function() {
 
 Game_Unit.prototype.refreshFormationSlots = function() {
     this._formationSlots = [];
-    var num = 2 * this.vanguardRearguardMaxMembers();
-    for(var i = 0; i < num; i++) {
+    const num = 2 * this.vanguardRearguardMaxMembers();
+    for(let i = 0; i < num; i++) {
         this._formationSlots.push(null);
     }
 };
@@ -315,7 +316,7 @@ Game_Unit.prototype.setMemberAtSlot = function(member, slotIndex) {
 };
 
 Game_Unit.prototype.addMemberToSlot = function(member, slotIndex) {
-    var index = this._formationSlots.indexOf(member);
+    const index = this._formationSlots.indexOf(member);
     if(index !== slotIndex && this.isMemberAddableToSlot(member, slotIndex)) {
         if(index > -1) this.removeMemberFromSlot(index);
         this.setMemberAtSlot(member, slotIndex);
@@ -364,8 +365,8 @@ Game_Unit.prototype.removeMemberFromSlot = function(member) {
 
 Game_Unit.prototype.swapMembersBetweenSlots = function(slotIndex1, slotIndex2) {
     if(slotIndex1 === slotIndex2) return;
-    var member1 = this._formationSlots[slotIndex1];
-    var member2 = this._formationSlots[slotIndex2];
+    const member1 = this._formationSlots[slotIndex1];
+    const member2 = this._formationSlots[slotIndex2];
     this.setMemberAtSlot(member1, slotIndex2);
     this.setMemberAtSlot(member2, slotIndex1);
 };
@@ -383,48 +384,48 @@ Game_Unit.prototype.isMemberAddableToSlot = function(member, slotIndex) {
 };
 
 Game_Unit.prototype.minBlankSlotIndex = function() {
-    for(var i = 0; i < this._formationSlots; i++) {
-        var member = this._formationSlots[i];
+    for(let i = 0; i < this._formationSlots; i++) {
+        const member = this._formationSlots[i];
         if(member === null) return i;
     }
 };
 
 Game_Unit.prototype.isAllStrictVanguardDied = function() {
-    for(var i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
-        var member = this._formationSlots[i];
+    for(let i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
+        const member = this._formationSlots[i];
         if(member && member.isAlive()) return false;
     }
     return true;
 };
 
 Game_Unit.prototype.isAllStrictRearguardDied = function() {
-    for(var i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
-        var member = this._formationSlots[i];
+    for(let i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
+        const member = this._formationSlots[i];
         if(member && member.isAlive()) return false;
     }
     return true;
 };
 
 Game_Unit.prototype.isAllStrictVanguardAlive = function() {
-    for(var i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
-        var member = this._formationSlots[i];
+    for(let i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
+        const member = this._formationSlots[i];
         if(member && member.isDead()) return false;
     }
     return true;
 };
 
 Game_Unit.prototype.isAllStrictRearguardAlive = function() {
-    for(var i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
-        var member = this._formationSlots[i];
+    for(let i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
+        const member = this._formationSlots[i];
         if(member && member.isDead()) return false;
     }
     return true;
 };
 
 Game_Unit.prototype.strictVanguardMembers = function() {
-    var arr = [];
-    for(var i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
-        var member = this._formationSlots[i];
+    const arr = [];
+    for(let i = 0; i < this.vanguardRearguardMaxMembers(); i++) {
+        const member = this._formationSlots[i];
         if(member) {
             arr.push(member);
         }
@@ -433,9 +434,9 @@ Game_Unit.prototype.strictVanguardMembers = function() {
 };
 
 Game_Unit.prototype.strictRearguardMembers = function() {
-    var arr = [];
-    for(var i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
-        var member = this._formationSlots[i];
+    const arr = [];
+    for(let i = this.vanguardRearguardMaxMembers(); i < this.vanguardRearguardMaxMembers() * 2; i++) {
+        const member = this._formationSlots[i];
         if(member) {
             arr.push(member);
         }
@@ -444,7 +445,7 @@ Game_Unit.prototype.strictRearguardMembers = function() {
 };
 
 Game_Unit.prototype.vanguardAliveMembers = function() {
-    var arr = [];
+    const arr = [];
     this.strictVanguardMembers().forEach((member)=>{
         if(member.isAlive()) arr.push(member);
     });
@@ -457,7 +458,7 @@ Game_Unit.prototype.vanguardAliveMembers = function() {
 };
 
 Game_Unit.prototype.rearguardAliveMembers = function() {
-    var arr = [];
+    const arr = [];
     this.strictRearguardMembers().forEach((member)=>{
         if(member.isAlive()) arr.push(member);
     });
@@ -470,7 +471,7 @@ Game_Unit.prototype.rearguardAliveMembers = function() {
 };
 
 Game_Unit.prototype.vanguardDeadMembers = function() {
-    var arr = [];
+    const arr = [];
     this.strictVanguardMembers().forEach((member)=>{
         if(member.isDead()) arr.push(member);
     });
@@ -483,7 +484,7 @@ Game_Unit.prototype.vanguardDeadMembers = function() {
 };
 
 Game_Unit.prototype.rearguardDeadMembers = function() {
-    var arr = [];
+    const arr = [];
     this.strictRearguardMembers().forEach((member)=>{
         if(member.isDead()) arr.push(member);
     });
@@ -513,12 +514,12 @@ Game_Unit.prototype.singleFormationSlotIndex = function() {
 // Game_Party
 //==============================================================================
 
-var __RSSD_FS_C_Game_Unit_isMemberAddableToSlot = Game_Unit.prototype.isMemberAddableToSlot;
+let __RSSD_FS_C_Game_Unit_isMemberAddableToSlot = Game_Unit.prototype.isMemberAddableToSlot;
 Game_Party.prototype.isMemberAddableToSlot = function(member, slotId) {
     return __RSSD_FS_C_Game_Unit_isMemberAddableToSlot.call(this, member, slotId) && this.existingFormationMembers().length < this.battleMembers().length;
 };
 
-var __RSSD_FS_C_Game_Party_setupStartingMembers = Game_Party.prototype.setupStartingMembers;
+let __RSSD_FS_C_Game_Party_setupStartingMembers = Game_Party.prototype.setupStartingMembers;
 Game_Party.prototype.setupStartingMembers = function() {
     __RSSD_FS_C_Game_Party_setupStartingMembers.call(this);
     this.setupStartingFormation();
@@ -528,14 +529,14 @@ Game_Party.prototype.setupStartingFormation = function() {
     if(this.battleMembers().length === 1) {
         this.addMemberToSlot(this.leader(), this.singleFormationSlotIndex());
     } else {
-        for(var i = 0; i < this.battleMembers().length; i++) {
-            var member = this.battleMembers()[i];
+        for(let i = 0; i < this.battleMembers().length; i++) {
+            const member = this.battleMembers()[i];
             this.addMemberToSlot(member, i);
         }
     }
 };
 
-var __RSSD_FS_C_Game_Party_addActor = Game_Party.prototype.addActor;
+let __RSSD_FS_C_Game_Party_addActor = Game_Party.prototype.addActor;
 Game_Party.prototype.addActor = function(actorId) {
     __RSSD_FS_C_Game_Party_addActor.call(this, actorId);
     if(!this._actors.contains(actorId)) {
@@ -543,7 +544,7 @@ Game_Party.prototype.addActor = function(actorId) {
     }
 };
 
-var __RSSD_FS_C_Game_Party_removeActor = Game_Party.prototype.removeActor;
+let __RSSD_FS_C_Game_Party_removeActor = Game_Party.prototype.removeActor;
 Game_Party.prototype.removeActor = function(actorId) {
     __RSSD_FS_C_Game_Party_removeActor.call(this, actorId);
     if(this._actors.contains(actorId)) {
@@ -551,11 +552,11 @@ Game_Party.prototype.removeActor = function(actorId) {
     }
 };
 
-var __RSSD_FS_C_Game_Party_swapOrder = Game_Party.prototype.swapOrder;
+let __RSSD_FS_C_Game_Party_swapOrder = Game_Party.prototype.swapOrder;
 Game_Party.prototype.swapOrder = function(index1, index2) {
-    __RSSD_FS_C_Game_Party_swapOrder.call(this);
-    var member1 = this.allMembers()[index1];
-    var member2 = this.allMembers()[index2];
+    __RSSD_FS_C_Game_Party_swapOrder.call(this, index1, index2);
+    const member1 = this._actors[index1];
+    const member2 = this._actors[index2];
     this.updateSwapFormationSlots(member1, member2);
 };
 
@@ -576,8 +577,8 @@ Game_Party.prototype.updateRemoveFormationSlots = function(member) {
 
 Game_Party.prototype.updateSwapFormationSlots = function(member1, member2) {
     if(this.battleMembers().contains(member1) && this.battleMembers().contains(member2)) {
-        let slot1 = member1.formationSlotIndex();
-        let slot2 = member2.formationSlotIndex();
+        const slot1 = member1.formationSlotIndex();
+        const slot2 = member2.formationSlotIndex();
         this.swapMembersBetweenSlots(slot1, slot2);
     } else if(this.battleMembers().contains(member1)) {
         this.removeMemberFromSlot(member1);
@@ -591,13 +592,13 @@ Game_Party.prototype.updateSwapFormationSlots = function(member1, member2) {
 // Game_Troop
 //==============================================================================
 
-var __RSSD_FS_C_Game_Troop_onBattleEnd = Game_Unit.prototype.onBattleEnd;
+let __RSSD_FS_C_Game_Troop_onBattleEnd = Game_Unit.prototype.onBattleEnd;
 Game_Troop.prototype.onBattleEnd = function() {
     __RSSD_FS_C_Game_Troop_onBattleEnd.call(this);
     this.refreshFormationSlots();
 };
 
-var __RSSD_FS_C_Game_Troop_setup = Game_Troop.prototype.setup;
+let __RSSD_FS_C_Game_Troop_setup = Game_Troop.prototype.setup;
 Game_Troop.prototype.setup = function(troopId) {
     __RSSD_FS_C_Game_Troop_setup.call(this, troopId);
     this.refreshFormation();
@@ -605,7 +606,7 @@ Game_Troop.prototype.setup = function(troopId) {
 
 Game_Troop.prototype.refreshFormation = function() {
     this.members().forEach((member)=>{
-        var type = member.isSetVanguard() ? 1 : (member.isSetRearguard() ? 2 : 0);
+        const type = member.isSetVanguard() ? 1 : (member.isSetRearguard() ? 2 : 0);
         this.addMemberToRandomSlot(member, type);
     });
 };
@@ -626,10 +627,10 @@ Game_Action.prototype.isForFormationMembers = function() {
     return this.isForRearguard() || this.isForAllFormationMembers();
 };
 
-var __RSSD_FS_C_Game_Action_targetsForOpponents = Game_Action.prototype.targetsForOpponents;
+let __RSSD_FS_C_Game_Action_targetsForOpponents = Game_Action.prototype.targetsForOpponents;
 Game_Action.prototype.targetsForOpponents = function() {
-    var targets = [];
-    var unit = this.opponentsUnit();
+    const targets = [];
+    const unit = this.opponentsUnit();
     unit.setFormationTargetType('');
     if(this.isForFormationMembers()) {
         if(this.isForRearguard()) {
@@ -641,10 +642,10 @@ Game_Action.prototype.targetsForOpponents = function() {
     return __RSSD_FS_C_Game_Action_targetsForOpponents.call(this);
 };
 
-var __RSSD_FS_C_Game_Action_targetsForFriends = Game_Action.prototype.targetsForFriends;
+let __RSSD_FS_C_Game_Action_targetsForFriends = Game_Action.prototype.targetsForFriends;
 Game_Action.prototype.targetsForFriends = function() {
-    var targets = [];
-    var unit = this.friendsUnit();
+    const targets = [];
+    const unit = this.friendsUnit();
     unit.setFormationTargetType('');
     if(this.isForFormationMembers()) {
         if(this.isForRearguard()) {
@@ -653,7 +654,7 @@ Game_Action.prototype.targetsForFriends = function() {
             unit.setFormationTargetType('all');
         }
     }
-    return __RSSD_FS_C_Game_Action_targetsForOpponents.call(this);
+    return __RSSD_FS_C_Game_Action_targetsForFriends.call(this);
 };
 
 //==============================================================================
@@ -680,16 +681,16 @@ Sprite_Battler.prototype.formationOffsetY = function() {
 // Sprite_Actor
 //==============================================================================
 
-var __RSSD_FS_C_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
+let __RSSD_FS_C_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
 Sprite_Actor.prototype.setActorHome = function(index) {
     __RSSD_FS_C_Sprite_Actor_setActorHome.call(this, index);
     this.setFormationPosition(this._actor);
 };
 
 Sprite_Actor.prototype.setFormationPosition = function(battler) {
-    var slotIndex = battler.formationSlotIndex();
-    var maxNumber = battler.friendsUnit().vanguardRearguardMaxMembers();
-    var id = 0, offsetX = 0;
+    const slotIndex = battler.formationSlotIndex();
+    const maxNumber = battler.friendsUnit().vanguardRearguardMaxMembers();
+    let id = 0, offsetX = 0;
     if(battler.isStrictVanguard()) id = slotIndex;
     if(battler.isStrictRearguard()) {
         id = slotIndex - maxNumber;
@@ -703,11 +704,11 @@ Sprite_Actor.prototype.setFormationPosition = function(battler) {
 //==============================================================================
 
 Sprite_Enemy.prototype.firstFormationX = function() {
-    var screenWidth = Utils.RPGMAKER_NAME === 'MZ' ? Graphics.width : SceneManager._screenWidth;
+    const screenWidth = Utils.RPGMAKER_NAME === 'MZ' ? Graphics.width : SceneManager._screenWidth;
     return screenWidth - Sprite_Battler.prototype.firstFormationX.call(this);
 };
 
-var __RSSD_FS_C_Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
+let __RSSD_FS_C_Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
 Sprite_Enemy.prototype.setBattler = function(battler) {
     __RSSD_FS_C_Sprite_Enemy_setBattler.call(this, battler);
     if(this.isAutoFormationPositionEnabled()) {
@@ -716,9 +717,9 @@ Sprite_Enemy.prototype.setBattler = function(battler) {
 };
 
 Sprite_Enemy.prototype.setFormationPosition = function(battler) {
-    var slotIndex = battler.formationSlotIndex();
-    var maxNumber = battler.friendsUnit().vanguardRearguardMaxMembers();
-    var id = 0, offsetX = 0;
+    const slotIndex = battler.formationSlotIndex();
+    const maxNumber = battler.friendsUnit().vanguardRearguardMaxMembers();
+    let id = 0, offsetX = 0;
     if(battler.isStrictVanguard()) id = slotIndex;
     if(battler.isStrictRearguard()) {
         id = slotIndex - maxNumber;
@@ -824,10 +825,10 @@ if(Utils.RPGMAKER_NAME === 'MV' || Utils.RPGMAKER_NAME !== 'MZ') {
 
 if(Utils.RPGMAKER_NAME === 'MV' || Utils.RPGMAKER_NAME !== 'MZ') {
 
-    var __RSSD_FS_C_Scene_Battle_selectEnemySelection = Scene_Battle.prototype.selectEnemySelection;
+    let __RSSD_FS_C_Scene_Battle_selectEnemySelection = Scene_Battle.prototype.selectEnemySelection;
     Scene_Battle.prototype.selectEnemySelection = function() {
-        var action = BattleManager.inputtingAction();
-        var unit = $gameTroop;
+        const action = BattleManager.inputtingAction();
+        const unit = $gameTroop;
         unit.setFormationTargetType('');
         if(action.isForRearguard()) {
             unit.setFormationTargetType('rearguard');
@@ -837,10 +838,10 @@ if(Utils.RPGMAKER_NAME === 'MV' || Utils.RPGMAKER_NAME !== 'MZ') {
         __RSSD_FS_C_Scene_Battle_selectEnemySelection.call(this);
     };
 
-    var __RSSD_FS_C_Scene_Battle_selectActorSelection = Scene_Battle.prototype.selectActorSelection;
+    let __RSSD_FS_C_Scene_Battle_selectActorSelection = Scene_Battle.prototype.selectActorSelection;
     Scene_Battle.prototype.selectActorSelection = function() {
-        var action = BattleManager.inputtingAction();
-        var unit = $gameParty;
+        const action = BattleManager.inputtingAction();
+        const unit = $gameParty;
         unit.setFormationTargetType('');
         if(action.isForRearguard()) {
             unit.setFormationTargetType('rearguard');
