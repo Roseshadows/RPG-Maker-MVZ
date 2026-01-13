@@ -3,7 +3,7 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 1.2.7 - 简易可翻页书籍
+ * @plugindesc 1.2.8 - 简易可翻页书籍
  * @author Rose_shadows
  * @target MV MZ
  * @help
@@ -23,7 +23,7 @@
  * 或者使用CSS格式颜色作为文字颜色等。
  * 
  * 该插件还同时兼容 MV 的 YEP 消息核心插件和 MZ 的 Visu 消息核心插件，
- * 可以为书籍内容使用自动换行功能。详情见下记“自动换行功能”部分。
+ * 可以为书籍内容使用自动换行功能。
  * 
  * 
  * === 使用指引 / 注意事项 ===
@@ -302,6 +302,7 @@
  *         （需要消息核心插件），修复书籍最多两页时显示翻页提示文本的问题。
  * 1.2.7 - 确认了与 YEP_MessageCore.js 的兼容性，新增为书籍文本设置字号和
  *         行高的功能。
+ * 1.2.8 - 修复 MZ 无法设置默认字体颜色的问题。
  * 
  * 
  * 
@@ -1378,9 +1379,19 @@ Window_PageableBook_Page.prototype.applyPageNum = function(pageText, orient='cen
 };
 
 Window_PageableBook_Page.prototype.processCharacterEffect = function(texts) {
+    texts = this.makeWordWrapTag(texts);
+    texts = this.makeOtherTag(texts);
+    return texts;
+};
+
+Window_PageableBook_Page.prototype.makeWordWrapTag = function(texts) {
     if($gameSystem.isPageableWordWrapEnabled()) {
         texts = '<WordWrap>'+texts;
     }
+    return texts;
+};
+
+Window_PageableBook_Page.prototype.makeOtherTag = function(texts) {
     if(isMessageCoreInstalled && !$gameSystem.isPageableTextOutlineEnabled()) {
         const name = isMZ ? 'OutlineWidth' : 'ow';
         texts = '\\'+name+'[0]' + texts;
@@ -1456,10 +1467,10 @@ if(isMZ) {
         return ColorManager.textColor(n);
     };
     
-    let __RSSD_SPB_Window_PageableBook_Page_applyContents = Window_PageableBook_Page.prototype.applyContents;
-    Window_PageableBook_Page.prototype.applyContents = function(texts) {
+    let __RSSD_SPB_Window_PageableBook_Page_makeOtherTag = Window_PageableBook_Page.prototype.makeOtherTag;
+    Window_PageableBook_Page.prototype.makeOtherTag = function(texts) {
         texts = '\\C[' + $gameSystem.pageableTextColor() + ']' + texts; // normalColor is invalid
-        __RSSD_SPB_Window_PageableBook_Page_applyContents.call(this, texts);
+        return __RSSD_SPB_Window_PageableBook_Page_makeOtherTag.call(this, texts);
     };
 }
 
