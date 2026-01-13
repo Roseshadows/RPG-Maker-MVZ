@@ -38,6 +38,6 @@
 |**[TMRingCommand_Upgraded.js](./MV/TMRingCommand_Upgraded.js)**|<玩法> 在tomoaky的 [TMRingCommand.js](https://github.com/munokura/tomoaky-MV-plugins/blob/master/TMRingCommand.js) 插件的基础上修改的新一版的插件。原来的插件具有局限性，指令是固定的。但在修改版的插件中，可以用开关来控制各个指令的显示与隐藏；可以添加最多十个公共事件到轮盘中；轮盘不仅能绑定到玩家身上，还可以绑定在屏幕上；在外观设置这一栏里添加了一些更细节的设置，等等。|
 |**[TMXpCharacter_Patch.js](./MV/TMXpCharacter_Patch.js)**|<行走图> [TMXpCharacter.js](https://github.com/munokura/tomoaky-MV-plugins/blob/master/TMXpCharacter.js) 的补丁插件。修复了以下问题：1. XP行走图初始帧显示了错误的图像；2. 在窗口中不正确绘制了XP行走图。|
 |**[UditaUI.js](./MV/UditaUI.js)**|<界面> 允许你在 RMMV 中使用 Wolf RPG Editor 格式的窗口皮肤、对话暂停光标和选择光标。对于示例图，去看 [img/UditaUI](./img/UditaUI/) 。|
-|**[YEP_MessageCore_WordWrapPatch.js](./MV/YEP_MessageCore_WordWrapPatch.js)**|<对话> YEP_MessageCore.js 的补丁插件。修复了自动换行功能无法用于CJK字符的问题。|
+|**[YEP_MessageCore_WordWrapPatch.js](./MV/YEP_MessageCore_WordWrapPatch.js)**|<对话> [YEP_MessageCore.js](http://www.yanfly.moe/wiki/Message_Core_(YEP)) 的补丁插件。修复了自动换行功能无法用于CJK字符的问题。|
 ### :notebook:使用条款：
 - MIT 协议
