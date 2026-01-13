@@ -8,6 +8,7 @@
 |**[EasingExtension.js](./MVZ/EasingExtension.js)**|<基础> 扩展缓动函数（Easings），用于写在update里。详情请看插件帮助。|
 |**[RSSD_AutoMessageName.js](./MVZ/RSSD_AutoMessageName.js)**|<对话> 提供根据脸图自动绘制角色名称的功能。|
 |**[RSSD_CEFindIdByName.js](./MVZ/RSSD_CEFindIdByName.js)**|<工具> 使用脚本调用公共事件时可以输入公共事件名称。|
+|**[RSSD_EventNamePop.js](./MVZ/RSSD_EventNamePop.js)**|<事件> 通过事件注释为事件设置悬浮在头顶的事件名或自定义文字。|
 |**[RSSD_ExtraLineWrap.js](./MVZ/RSSD_ExtraLineWrap.js)**|<界面> 使用标签可以设置三行或三行以上的帮助窗口文本。|
 |**[RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js)**|<玩法> 通过标签为角色/敌人自定义额外的隐藏属性。属性可绑定在角色、敌人、职业、武器、防具、物品、技能、状态共8种数据库类型，MV工程通过YEP_StatusMenuCore.js还可以将隐藏属性显示出来。|
 |**[RSSD_HP_Addon_ParamGrowth.js](./MVZ/RSSD_HP_Addon_ParamGrowth.js)**|<玩法> [RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js) 的扩展插件。允许开发者设置成长类型，将隐藏属性设为可成长的属性。|
@@ -22,6 +23,8 @@
 #### 限定 MZ
 |插件名|插件功能|
 |:----:|:-----|
+|**[RSSD_AnyKeyTriggeredIndicator.js](./MZ/RSSD_AnyKeyTriggeredIndicator.js)**|<输入> 提供一个函数，检测是否有任何键盘按键被按下。|
+|**[RSSD_GlobalSwiVar.js](./MZ/RSSD_GlobalSwiVar.js)**|<玩法> 将特定游戏开关和变量设为跨存档的全局开关和变量。搭配这个功能，可以实现多周目流程、通关隐藏、收集成就、跟随剧情改变标题背景等。|
 |**[RSSD_MultiPriorityFade.js](./MZ/RSSD_MultiPriorityFade.js)**|<屏幕效果> 可以选择淡入淡出的层级。默认情况下，淡入淡出只影响背景层 + 图片层（不包括对话框），使用这个插件，不仅可以单独控制这两层，还可以控制整个屏幕层（包括对话框）的淡入淡出效果。|
 |**[RSSD_ReliabilityGauge.js](./MZ/RSSD_ReliabilityGauge.js)**|<玩法> 复刻逆转裁判123样式的可信度血条（右上角每次回答/举证时出现的条）。血条可以用控制字符或插件指令来控制，减少可信度时还会演出预先设好的动画。具体可看插件帮助。插件中使用的 Window_RpGauge.png 参见[这里](./img/RSSD_ReliabilityGauge/Window_RpGauge.png)。|
 |**[RSSD_QoL_RoundedItemBackRect.js](./MZ/RSSD_QoL_RoundedItemBackRect.js)**|<QoL> 将带棱角的矩形指令选项背景更换为圆角矩形。|
@@ -35,5 +38,6 @@
 |**[TMRingCommand_Upgraded.js](./MV/TMRingCommand_Upgraded.js)**|<玩法> 在tomoaky的 [TMRingCommand.js](https://github.com/munokura/tomoaky-MV-plugins/blob/master/TMRingCommand.js) 插件的基础上修改的新一版的插件。原来的插件具有局限性，指令是固定的。但在修改版的插件中，可以用开关来控制各个指令的显示与隐藏；可以添加最多十个公共事件到轮盘中；轮盘不仅能绑定到玩家身上，还可以绑定在屏幕上；在外观设置这一栏里添加了一些更细节的设置，等等。|
 |**[TMXpCharacter_Patch.js](./MV/TMXpCharacter_Patch.js)**|<行走图> [TMXpCharacter.js](https://github.com/munokura/tomoaky-MV-plugins/blob/master/TMXpCharacter.js) 的补丁插件。修复了以下问题：1. XP行走图初始帧显示了错误的图像；2. 在窗口中不正确绘制了XP行走图。|
 |**[UditaUI.js](./MV/UditaUI.js)**|<界面> 允许你在 RMMV 中使用 Wolf RPG Editor 格式的窗口皮肤、对话暂停光标和选择光标。对于示例图，去看 [img/UditaUI](./img/UditaUI/) 。|
+|**[YEP_MessageCore_WordWrapPatch.js](./MV/YEP_MessageCore_WordWrapPatch.js)**|<对话> YEP_MessageCore.js 的补丁插件。修复了自动换行功能无法用于CJK字符的问题。|
 ### :notebook:使用条款：
 - MIT 协议
