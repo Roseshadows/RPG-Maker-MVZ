@@ -2,9 +2,8 @@
 // UditaUI.js
 //===============================================================
 /*:
- * @plugindesc 3.0.1 - Wolf RPG Editor 格式的 UI
+ * @plugindesc ver3.02 - Wolf RPG Editor 格式的 UI
  * @author 离影玫 | Rose_shadows
- * @target MV
  * @help 
  * === 介绍 ===
  * 
@@ -118,26 +117,33 @@
  * 
  * === 使用条款 ===
  * 
- * MIT 协议
+ * 免费用于商业与非商业工程。允许二次转发及修改。
+ * 不强制署名，但不要声明该插件是除 Rose_shadows | 离影玫 | OrchidBones | 
+ * 兰骨 以外的人所写的。
+ * Free to be used in both commercial and non-commercial projects. You can 
+ * also modify or redistribute this plugin, as long as you do not claim this
+ * plugin belongs to anyone except me, Rose_shadows | 离影玫 | OrchidBones | 
+ * 兰骨. 
+ * Credits are appreciated, but not required.
  * 
  * 
  * === 更新日志 ===
  * 
- * 1.0.0 - 完成。初步添加了对Udita格式窗口皮肤的支持。
- * 1.0.1 - 添加了对存档的支持。
+ * v1.00 - 完成。初步添加了对Udita格式窗口皮肤的支持。
+ * v1.01 - 添加了对存档的支持。
  *         现在，游戏当前使用的皮肤格式可以存入存档中。
- * 1.0.2 - 修复了修改窗口皮肤格式时，窗口没有立即更改格式的问题。
- * 2.0.0 - 进一步添加了对Udita格式对话暂停光标的支持。
+ * v1.02 - 修复了修改窗口皮肤格式时，窗口没有立即更改格式的问题。
+ * v2.00 - 进一步添加了对Udita格式对话暂停光标的支持。
  *         整理了插件参数列表，新增关于Udita格式对话暂停光标的设置。
- * 2.1.0 - 新增更换Udita格式UI图片的功能。
- * 3.0.0 - 添加了对Udita格式选择光标的支持及相关插件参数设置。
- * 3.0.1 - 修复“Udita选择光标是否闪烁”参数失效的问题。
+ * v2.10 - 新增更换Udita格式UI图片的功能。
+ * v3.00 - 添加了对Udita格式选择光标的支持及相关插件参数设置。
+ * v3.01 - 修复“Udita选择光标是否闪烁”参数失效的问题。
+ * v3.02 - 修复Udita光标下组队界面pending背景依然为色块而非选择光标的问题。
  * 
- * @param === 窗口皮肤 ===
+ * @param ===== 窗口皮肤 =====
  * 
  * @param Initially Use Udita Skin
  * @text 初始是否使用Udita皮肤
- * @parent === 窗口皮肤 ===
  * @type boolean
  * @on Udita
  * @off RMMV
@@ -146,18 +152,17 @@
  * 
  * @param Default Udita Windowskin Name
  * @text 默认Udita窗口皮肤
- * @parent === 窗口皮肤 ===
  * @type file
  * @dir img/system/
  * @require 1
  * @desc 默认的Udita窗口皮肤。放在 img/system/ 目录下。
  * @default Window2
  * 
- * @param === 对话暂停光标 ===
+ * @param
+ * @param ==== 对话暂停光标 ====
  * 
  * @param Initially Use Udita Pause Sign
  * @text 初始是否使用Udita暂停光标
- * @parent === 对话暂停光标 ===
  * @type boolean
  * @on Udita
  * @off RMMV
@@ -166,7 +171,6 @@
  * 
  * @param Default Udita Pause Sign Name
  * @text 默认Udita暂停光标
- * @parent === 对话暂停光标 ===
  * @type file
  * @dir img/system/
  * @require 1
@@ -175,7 +179,6 @@
  * 
  * @param Udita Pause Sign Position
  * @text Udita暂停光标位置
- * @parent === 对话暂停光标 ===
  * @type select
  * @option 左
  * @value 0
@@ -189,7 +192,6 @@
  * 
  * @param Udita Pause Sign Frames
  * @text Udita暂停光标帧数
- * @parent === 对话暂停光标 ===
  * @type number
  * @min 1
  * @desc Udita对话暂停光标的动画帧数。
@@ -198,17 +200,16 @@
  * 
  * @param Udita Pause Sign Anime Speed
  * @text Udita暂停光标动画速度
- * @parent === 对话暂停光标 ===
  * @type number
  * @min 1
  * @desc Udita对话暂停光标的动画速度。数字越小，速度越快。默认是12
  * @default 12
  * 
- * @param === 选择光标 ===
+ * @param
+ * @param ==== 选择光标 ====
  * 
  * @param Initially Use Udita Cursor
  * @text 初始是否使用Udita选择光标
- * @parent === 选择光标 ===
  * @type boolean
  * @on Udita
  * @off RMMV
@@ -217,7 +218,6 @@
  * 
  * @param Default Udita Cursor Name
  * @text 默认Udita选择光标名称
- * @parent === 选择光标 ===
  * @type file
  * @dir img/system/
  * @require 1
@@ -226,7 +226,6 @@
  * 
  * @param Enable Udita Cursor Blinking
  * @text Udita选择光标是否闪烁
- * @parent === 选择光标 ===
  * @type boolean
  * @on 闪烁
  * @off 不闪烁
@@ -252,13 +251,43 @@ RSSD.UditaUI.isCursorBlinking       = RSSD.UditaUI.parameters['Enable Udita Curs
 RSSD.UditaUI.uditaPauseSignFrames   = +RSSD.UditaUI.parameters['Udita Pause Sign Frames'] || 6;
 RSSD.UditaUI.uditaPauseSignSpeed    = +RSSD.UditaUI.parameters['Udita Pause Sign Anime Speed'] || 12;
 
+//==============================================================================
+// Bitmap
+//==============================================================================
+
+/**
+ * 在Bitmap实例上绘制九宫格格式的图像
+ * @param {Bitmap} source 源slice9的UI图像
+ * @param {Rectangle} srect 原位置Rectangle对象
+ * @param {Rectangle} drect 目的位置Rectangle对象，若省略则使用srect的值
+ * @param {Number} wm 横向缩进，默认为源slice9图像的1/3
+ * @param {Number} hm 纵向缩进，默认为源slice9图像的1/3
+ */
+Bitmap.prototype.setRectPartsGeometry_9slice = function(source, srect, drect, wm, hm) {
+    const sx = srect.x, sy = srect.y, sw = srect.width, sh = srect.height;
+    drect = drect || srect;
+    const dx = drect.x, dy = drect.y, dw = drect.width, dh = drect.height;
+    wm = wm || Math.floor(sw / 3);
+    hm = hm || Math.floor(sh / 3);
+    const skin = source;
+    this.blt(skin, sx, sy, wm, hm, dx, dy, wm, hm); // up left
+    this.blt(skin, sx + sw - wm, sy, wm, hm, dx + dw - wm, dy, wm, hm); // up right
+    this.blt(skin, sx, sy + sw - hm, wm, hm, dx, dy + dh - hm, wm, hm); // down left
+    this.blt(skin, sx + sw - wm, sy + sh - hm, wm, hm, dx + dw - wm, dy + dh - hm, wm, hm); // down right
+    this.blt(skin, sx, sy + hm, wm, sh - 2*hm, dx, dy + hm, wm, dh - 2*hm); // left
+    this.blt(skin, sx + wm, sy, sw - 2*wm, hm, dx + wm, dy, dw - 2*wm, hm); // up
+    this.blt(skin, sx + sw - wm, sy + hm, wm, sh - 2*hm, dx + dw - wm, dy + hm, wm, dh - 2*hm); // right
+    this.blt(skin, sx + wm, sy + sh - hm, sw - 2*wm, hm, dx + wm, dy + dh - hm, dw - 2*wm, hm); // down
+    this.blt(skin, sx + wm, sy + hm, sw - 2*wm, sh - 2*hm, dx + wm, dy + hm, dw - 2*wm, dh - 2*hm); // center
+};
+
 //===============================================================
 // Game_Interpreter
 //===============================================================
 
-var __Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
-Game_Interpreter.prototype.pluginCommand = function() {
-    __Game_Interpreter_pluginCommand.call(this);
+var __UUI_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    __UUI_Game_Interpreter_pluginCommand.call(this, command, args);
     if(command.toLowerCase() == '::udita') {
         if(args[0].toLowerCase() == 'windowskin') {
             RSSD.UditaUI.isUseSkin = args[1].toLowerCase() == 'true';
@@ -367,7 +396,7 @@ Window.prototype._onUditaCursorLoad = function() {
     this._refreshAllParts();
 };
 
-var __RSSD_UUI_Window__refreshBack = Window.prototype._refreshBack;
+var __Window__refreshBack = Window.prototype._refreshBack;
 Window.prototype._refreshBack = function() {
     if(this._isUditaskin){
 
@@ -399,7 +428,7 @@ Window.prototype._refreshBack = function() {
             bitmap.adjustTone(tone[0], tone[1], tone[2]);
         };
     } else {
-        __RSSD_UUI_Window__refreshBack.call(this);
+        __Window__refreshBack.call(this);
     }
 };
 
@@ -599,6 +628,26 @@ Window_Base.prototype.update = function() {
     this._uditaskinName = RSSD.UditaUI.uditaskin;
     this._uditaPauseSignName = RSSD.UditaUI.uditaPauseSign;
     this._uditaCursorName = RSSD.UditaUI.uditaCursor;
+};
+
+//==============================================================================
+// Window_MenuStatus
+//==============================================================================
+
+let __Window_MenuStatus_drawPendingItemBackground = Window_MenuStatus.prototype.drawItemBackground;
+Window_MenuStatus.prototype.drawItemBackground = function(index) {
+    if(this._uditaCursor && this._isUditaCursor) {
+        if (index === this._pendingIndex) {
+            const skin = this._uditaCursor;
+            const srect = {x: 0, y: 0, width: skin.width, height: skin.height};
+            const drect = this.itemRect(index);
+            this.changePaintOpacity(false);
+            this.contents.setRectPartsGeometry_9slice(skin, srect, drect);
+            this.changePaintOpacity(true);
+        }
+    } else {
+        __Window_MenuStatus_drawPendingItemBackground.call(this, index);
+    }
 };
 
 //===============================================================
