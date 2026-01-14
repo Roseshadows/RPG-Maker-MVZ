@@ -3,19 +3,21 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 1.0.0 - 跨存档开关 & 变量
+ * @plugindesc 1.0.1 - 跨存档开关 & 变量
  * @author Rose_shadows
- * @target MZ
+ * @target MZ MV
  * @help
  * === 介绍 ===
  * 
  * 该插件允许你将特定游戏开关或变量设置为跨存档的全局变量。
  * 只要在插件中设置好相关开关和变量ID，对应开关和变量的值就不再受限于存档，
  * 而通用于游戏内的任何进程。
- * 搭配这个功能，可以实现多周目流程、通关隐藏、收集成就、跟随剧情改变标题背景等。
+ * 搭配这个功能，可以实现多周目流程、通关开启隐藏、收集成就、随剧情改变标题背景等。
  * 
  * 该插件的工作流程是检测相关开关或变量的值（直接检测_data数组某元素）是否被变更，
- * 如有变更，就将更新的数据存入 save/ 文件夹下的 globalswivar.rmmzsave 文件。
+ * 如有变更，就将更新的数据存入 save/ 文件夹下的加密数据文件：
+ * MV 的文件：globalswivar.rpgsave
+ * MZ 的文件：globalswivar.rmmzsave
  * 因此，该插件具有良好的兼容性，能够检测到非编辑器操作的开关与变量是否有变更。
  * 
  * 由于该插件覆写了部分方法，为了保证最佳的兼容性，
@@ -30,6 +32,7 @@
  * === 更新日志 ===
  * 
  * 1.0.0 - 完成。
+ * 1.0.1 - 添加了对 MV 的兼容。
  * 
  * @param Global Switches
  * @text 跨存档开关列表
@@ -53,6 +56,9 @@ RSSD.GSV.pluginName = 'RSSD_GlobalSwiVar';
 RSSD.GSV.parameters = PluginManager.parameters(RSSD.GSV.pluginName);
 RSSD.GSV.switches = JSON.parse(RSSD.GSV.parameters['Global Switches'] || '[]').map((id)=>+id);
 RSSD.GSV.variables = JSON.parse(RSSD.GSV.parameters['Global Variables'] || '[]').map((id)=>+id);
+RSSD.GSV.isMZ = Utils.RPGMAKER_NAKE === 'MZ';
+RSSD.GSV.dataId = -2; // for MV only
+RSSD.GSV.filename = 'globalswivar';
 
 //=============================================================================
 // DataManager
@@ -61,14 +67,30 @@ RSSD.GSV.variables = JSON.parse(RSSD.GSV.parameters['Global Variables'] || '[]')
 DataManager._globalSwiVarInfo = null;
 
 DataManager.loadGlobalSwiVarInfo = function() {
-    StorageManager.loadObject("globalswivar")
-        .then(globalInfo => {
-            this._globalSwiVarInfo = globalInfo;
-            return 0;
-        })
-        .catch(() => {
+    if(RSSD.GSV.isMZ) {
+        StorageManager.loadObject(RSSD.GSV.filename)
+            .then(globalInfo => {
+                this._globalSwiVarInfo = globalInfo;
+                return 0;
+            })
+            .catch(() => {
+                this._globalSwiVarInfo = this.globalSwiVarEmptyObject();
+            });
+    } else {
+        let json;
+        try {
+            json = StorageManager.load(RSSD.GSV.dataId);
+        } catch (e) {
+            console.error(e);
             this._globalSwiVarInfo = this.globalSwiVarEmptyObject();
-        });
+        }
+        if (json) {
+            const globalInfo = JSON.parse(json);
+            this._globalSwiVarInfo = globalInfo;
+        } else {
+            this._globalSwiVarInfo = this.globalSwiVarEmptyObject();
+        }
+    }
 };
 
 DataManager.globalSwiVarEmptyObject = function() {
@@ -76,7 +98,8 @@ DataManager.globalSwiVarEmptyObject = function() {
 };
 
 DataManager.saveGlobalSwiVarInfo = function() {
-    StorageManager.saveObject("globalswivar", this._globalSwiVarInfo);
+    if(RSSD.GSV.isMZ) StorageManager.saveObject(RSSD.GSV.filename, this._globalSwiVarInfo);
+    else StorageManager.save(RSSD.GSV.dataId, JSON.stringify(this._globalSwiVarInfo));
 };
 
 DataManager.isGlobalSwiVarInfoLoaded = function() {
@@ -90,7 +113,12 @@ DataManager.setupNewGame = function() {
     this.setupGlobalVariables();
     this.selectSavefileForNewGame();
     $gameParty.setupStartingMembers();
-    $gamePlayer.setupForNewGame();
+    if(RSSD.GSV.isMZ) {
+        $gamePlayer.setupForNewGame();
+    } else {
+        $gamePlayer.reserveTransfer($dataSystem.startMapId,
+            $dataSystem.startX, $dataSystem.startY);
+    }
     Graphics.frameCount = 0;
 };
 
@@ -155,12 +183,34 @@ DataManager.saveGlobalVariable = function(variableId) {
 };
 
 //=============================================================================
+// StorageManager
+//=============================================================================
+
+if(!RSSD.GSV.isMZ) {
+    let __RSSD_GSV_StorageManager_localFilePath = StorageManager.localFilePath;
+    StorageManager.localFilePath = function(savefileId) {
+        if(savefileId === RSSD.GSV.dataId) {
+            return this.localFileDirectoryPath() + RSSD.GSV.filename + '.rpgsave';
+        }
+        return __RSSD_GSV_StorageManager_localFilePath.call(this, savefileId);
+    };
+
+    let __RSSD_GSV_StorageManager_webStorageKey = StorageManager.webStorageKey;
+    StorageManager.webStorageKey = function(savefileId) {
+        if(savefileId === RSSD.GSV.dataId) {
+            return 'RPG GlobalSwiVar';
+        }
+        return __RSSD_GSV_StorageManager_webStorageKey.call(this, savefileId);
+    };
+}
+
+//=============================================================================
 // Scene_Boot
 //=============================================================================
 
-let __RSSD_GSV_Scene_Boot_onDatabaseLoaded = Scene_Boot.prototype.onDatabaseLoaded;
-Scene_Boot.prototype.onDatabaseLoaded = function() {
-    __RSSD_GSV_Scene_Boot_onDatabaseLoaded.call(this);
+let __RSSD_GSV_Scene_Boot_create = Scene_Boot.prototype.create;
+Scene_Boot.prototype.create = function() {
+    __RSSD_GSV_Scene_Boot_create.call(this);
     this.loadGlobalSwiVarData();
 };
 
