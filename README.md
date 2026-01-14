@@ -10,6 +10,7 @@
 |**[RSSD_CEFindIdByName.js](./MVZ/RSSD_CEFindIdByName.js)**|<工具> 使用脚本调用公共事件时可以输入公共事件名称。|
 |**[RSSD_EventNamePop.js](./MVZ/RSSD_EventNamePop.js)**|<事件> 通过事件注释为事件设置悬浮在头顶的事件名或自定义文字。|
 |**[RSSD_ExtraLineWrap.js](./MVZ/RSSD_ExtraLineWrap.js)**|<界面> 使用标签可以设置三行或三行以上的帮助窗口文本。|
+|**[RSSD_GlobalSwiVar.js](./MVZ/RSSD_GlobalSwiVar.js)**|<玩法> 将特定游戏开关和变量设为跨存档的全局开关和变量。搭配这个功能，可以实现多周目流程、通关隐藏、收集成就、跟随剧情改变标题背景等。|
 |**[RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js)**|<玩法> 通过标签为角色/敌人自定义额外的隐藏属性。属性可绑定在角色、敌人、职业、武器、防具、物品、技能、状态共8种数据库类型，MV工程通过YEP_StatusMenuCore.js还可以将隐藏属性显示出来。|
 |**[RSSD_HP_Addon_ParamGrowth.js](./MVZ/RSSD_HP_Addon_ParamGrowth.js)**|<玩法> [RSSD_HiddenParams.js](./MVZ/RSSD_HiddenParams.js) 的扩展插件。允许开发者设置成长类型，将隐藏属性设为可成长的属性。|
 |**[RSSD_MessageWindowSound.js](./MVZ/RSSD_MessageWindowSound.js)**|<对话> 切换对话时播放一次指定的音效。|
@@ -24,7 +25,6 @@
 |插件名|插件功能|
 |:----:|:-----|
 |**[RSSD_AnyKeyTriggeredIndicator.js](./MZ/RSSD_AnyKeyTriggeredIndicator.js)**|<输入> 提供一个函数，检测是否有任何键盘按键被按下。|
-|**[RSSD_GlobalSwiVar.js](./MZ/RSSD_GlobalSwiVar.js)**|<玩法> 将特定游戏开关和变量设为跨存档的全局开关和变量。搭配这个功能，可以实现多周目流程、通关隐藏、收集成就、跟随剧情改变标题背景等。|
 |**[RSSD_MultiPriorityFade.js](./MZ/RSSD_MultiPriorityFade.js)**|<屏幕效果> 可以选择淡入淡出的层级。默认情况下，淡入淡出只影响背景层 + 图片层（不包括对话框），使用这个插件，不仅可以单独控制这两层，还可以控制整个屏幕层（包括对话框）的淡入淡出效果。|
 |**[RSSD_ReliabilityGauge.js](./MZ/RSSD_ReliabilityGauge.js)**|<玩法> 复刻逆转裁判123样式的可信度血条（右上角每次回答/举证时出现的条）。血条可以用控制字符或插件指令来控制，减少可信度时还会演出预先设好的动画。具体可看插件帮助。插件中使用的 Window_RpGauge.png 参见[这里](./img/RSSD_ReliabilityGauge/Window_RpGauge.png)。|
 |**[RSSD_QoL_RoundedItemBackRect.js](./MZ/RSSD_QoL_RoundedItemBackRect.js)**|<基础> 将带棱角的矩形指令选项背景更换为圆角矩形。|
