@@ -1,5 +1,5 @@
 //=============================================================================
-// EventNamePop.js
+// RSSD_EventNamePop.js
 // Author: Rose_shadows
 //=============================================================================
 /*:
@@ -174,24 +174,23 @@ Sprite_Character.prototype.updateNamePop = function() {
 
 Sprite_Character.prototype.refreshNamePopSprite = function() {
     const event = this._character;
-    // Config Area
     const outlineWidth = 4;
     const outlineColor = "rgba(0, 0, 0, 0.8)";
-    // Config Area End
     const m = outlineWidth;
     const h = event.popFontSize() + 2 * m;
     const name = event.popName();
     const tempBitmap = RSSD.ENP._tempBitmap;
     tempBitmap.fontSize = event.popFontSize();
     const maxWidth = tempBitmap.measureTextWidth(name) + 2 * m;
-    this._namePopSprite.bitmap = new Bitmap(maxWidth, h);
-    this._namePopSprite.bitmap.fontSize = event.popFontSize();
-    this._namePopSprite.bitmap.outlineColor = outlineColor;
-    this._namePopSprite.bitmap.outlineWidth = outlineWidth;
-    this._namePopSprite.bitmap.textColor = event.popCssColor();
-    this._namePopSprite.bitmap.drawText(name, 0, 0, maxWidth, h, 'center');
-    this._namePopSprite.anchor.x = 0.5;
-    this._namePopSprite.anchor.y = 1;
+    const sprite = this._namePopSprite;
+    sprite.bitmap = new Bitmap(maxWidth, h);
+    sprite.bitmap.fontSize = event.popFontSize();
+    sprite.bitmap.outlineColor = outlineColor;
+    sprite.bitmap.outlineWidth = outlineWidth;
+    sprite.bitmap.textColor = event.popCssColor();
+    sprite.bitmap.drawText(name, 0, 0, maxWidth, h, 'center');
+    sprite.anchor.x = 0.5;
+    sprite.anchor.y = 1;
 };
 
 let __ENP_Sprite_Character_prototype_setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
