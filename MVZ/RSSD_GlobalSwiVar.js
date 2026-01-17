@@ -56,7 +56,7 @@ RSSD.GSV.pluginName = 'RSSD_GlobalSwiVar';
 RSSD.GSV.parameters = PluginManager.parameters(RSSD.GSV.pluginName);
 RSSD.GSV.switches = JSON.parse(RSSD.GSV.parameters['Global Switches'] || '[]').map((id)=>+id);
 RSSD.GSV.variables = JSON.parse(RSSD.GSV.parameters['Global Variables'] || '[]').map((id)=>+id);
-RSSD.GSV.isMZ = Utils.RPGMAKER_NAKE === 'MZ';
+RSSD.GSV.isMZ = Utils.RPGMAKER_NAME === 'MZ';
 RSSD.GSV.dataId = -2; // for MV only
 RSSD.GSV.filename = 'globalswivar';
 
