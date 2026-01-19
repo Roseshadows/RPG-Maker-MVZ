@@ -134,7 +134,7 @@ Window_Information.prototype.setScrollbarCtrlSprite = function(sprite) {
 };
 
 Window_Information.prototype.needsScrollBar = function() {
-    return (this.contentsHeight() > this.innerHeight || this._forceNeedsScrollBar) && this._isScrollbarEnabled;
+    return (this.contentsHeight() > this.innerHeight || this._forceNeedsScrollBar) && this.isScrollbarEnabled();
 };
 
 Window_Information.prototype.scrollbarPadding = function() {
@@ -184,6 +184,10 @@ Window_Information.prototype.scrollAccel = function() {
     return rate + add;
 };
 
+Window_Information.prototype.isScrollbarEnabled = function() {
+    return this._isScrollbarEnabled;
+};
+
 Window_Information.prototype.isScrollArrowVisible = function() {
     return true;
 };
@@ -205,6 +209,14 @@ Window_Information.prototype.isTouchedInsideFrame = function() {
     const touchPos = new Point(TouchInput.x, TouchInput.y);
     const localPos = this.worldTransform.applyInverse(touchPos);
     return this.innerRect.contains(localPos.x, localPos.y);
+};
+
+Window_Information.prototype.showScrollbar = function() {
+    this._isScrollbarEnabled = true;
+};
+
+Window_Information.prototype.hideScrollbar = function() {
+    this._isScrollbarEnabled = false;
 };
 
 Window_Information.prototype.setText = function(text) {
@@ -445,7 +457,7 @@ Window_Information.prototype.refreshAllTextHeight = function() {
     const height1 = this.textSizeEx(this._text).height;
     this._forceNeedsScrollBar = isForced;
     const isEnabled = this._isScrollbarEnabled;
-    this._isScrollbarEnabled = false;
+    this.hideScrollbar();
     const height2 = this.textSizeEx(this._text).height;
     this._isScrollbarEnabled = isEnabled;
     if(this.innerHeight.clamp(height1, height2) === this.innerHeight) 
