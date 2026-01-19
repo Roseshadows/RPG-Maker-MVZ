@@ -555,8 +555,8 @@ Sprite_Info_Scrollbar.prototype.onRelease = function() {
 let ___Scene_Map_createAllWindows = Scene_Map.prototype.createAllWindows;
 Scene_Map.prototype.createAllWindows = function() {
     ___Scene_Map_createAllWindows.call(this);
-    this.createTryWindow();
-    this.createTryWindowScrollbarSprite();
+    // this.createTryWindow();
+    // this.createTryWindowScrollbarSprite();
 };
 
 Scene_Map.prototype.createTryWindow = function() {
@@ -575,4 +575,5 @@ Scene_Map.prototype.createTryWindowScrollbarSprite = function() {
     this._tryWindow.setScrollbarCtrlSprite(ctrl);
     this.addChild(base);
     this.addChild(ctrl);
+
 };
