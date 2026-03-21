@@ -65,9 +65,9 @@ RSSD.ENP._tempBitmap = new Bitmap(1, 1);
 // Game_Event
 //=============================================================================
 
-let __ENP_Game_Event_initMembers = Game_Event.prototype.initMembers;
+let __RSSD_ENP_Game_Event_initMembers = Game_Event.prototype.initMembers;
 Game_Event.prototype.initMembers = function() {
-    __ENP_Game_Event_initMembers.call(this);
+    __RSSD_ENP_Game_Event_initMembers.call(this);
     this.initPopMembers();
 };
 
@@ -78,9 +78,9 @@ Game_Event.prototype.initPopMembers = function() {
     this._popCssColor = '#FFFFFF';
 };
 
-let __ENP_Game_Event_setupPage = Game_Event.prototype.setupPage;
+let __RSSD_ENP_Game_Event_setupPage = Game_Event.prototype.setupPage;
 Game_Event.prototype.setupPage = function() {
-    __ENP_Game_Event_setupPage.call(this);
+    __RSSD_ENP_Game_Event_setupPage.call(this);
     this.setupPopName();
 };
 
@@ -129,9 +129,9 @@ Game_Event.prototype.popCssColor = function() {
 // Sprite_Character
 //=============================================================================
 
-let __ENP_Sprite_Character_initialize = Sprite_Character.prototype.initialize;
+let __RSSD_ENP_Sprite_Character_initialize = Sprite_Character.prototype.initialize;
 Sprite_Character.prototype.initialize = function(character) {
-    __ENP_Sprite_Character_initialize.call(this, character);
+    __RSSD_ENP_Sprite_Character_initialize.call(this, character);
     this.initPopNameStuffForEvent();
 };
 
@@ -148,9 +148,9 @@ Sprite_Character.prototype.createNamePopSprite = function() {
     this.addChild(this._namePopSprite);
 };
 
-let __ENP_Sprite_Character_update = Sprite_Character.prototype.update;
+let __RSSD_ENP_Sprite_Character_update = Sprite_Character.prototype.update;
 Sprite_Character.prototype.update = function() {
-    __ENP_Sprite_Character_update.call(this);
+    __RSSD_ENP_Sprite_Character_update.call(this);
     this.updateNamePop();
 };
 
@@ -193,9 +193,9 @@ Sprite_Character.prototype.refreshNamePopSprite = function() {
     sprite.anchor.y = 1;
 };
 
-let __ENP_Sprite_Character_prototype_setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
+let __RSSD_ENP_Sprite_Character_prototype_setCharacterBitmap = Sprite_Character.prototype.setCharacterBitmap;
 Sprite_Character.prototype.setCharacterBitmap = function() {
-    __ENP_Sprite_Character_prototype_setCharacterBitmap.call(this);
+    __RSSD_ENP_Sprite_Character_prototype_setCharacterBitmap.call(this);
     this.refreshNamePopPosition();
     this.checkNamePopVisibilityByPage();
 };
