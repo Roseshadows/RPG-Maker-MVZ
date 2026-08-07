@@ -3,133 +3,121 @@
 // Author: Rose_shadows
 //=============================================================================
 /*:
- * @plugindesc 无限图层显示系统 - 扩展
+ * @plugindesc 1.0.0 - 无限图层显示系统 - 扩展
  * @author Rose_shadows
  * @target MV MZ
  * @orderAfter ULDS
  * @help
+ * -------------------------------------------------------------------
  * === 介绍 ===
  * 
  * 本插件扩展了 ULDS.js 插件的功能：
- * 1. 设置全局ULDS图层，可在所有地图显示，无需复制粘贴注释；
- * 2. 添加“frame”参数，允许开发人员截取某张图中的一部分用作图片的图像。
+ * 1. 设置全局ULDS图层，默认可在所有地图显示，无需复制粘贴注释；
+ * 2. 预设ULDS图层，方便在多个地图上重复使用；
+ * 3. 提供在 ULDS.js 外部获取 ULDS.Sprite() 和 ULDS.TilingSprite() 
+ *    的 constructor 并对其扩展的方法。
  * 具体参见“使用方法”。
  * 
  * ！注意！请将该插件放到紧邻 ULDS.js 插件之下的位置。否则无效果。
  * 即，在插件管理器中，本插件必须为 ULDS.js 的下一个插件。
  * 
  * 
+ * -------------------------------------------------------------------
+ * === 兼容性 ===
+ * 
+ * RMMV：1.6.0+
+ * RMMZ：1.0.1+
+ * 
+ * 
+ * -------------------------------------------------------------------
  * === 使用方法 ===
  * 
+ * 
+ * ---------------------------------
  * 1. 全局ULDS图层
  * 
  *    在插件参数“全局ULDS图层设置”中，可以像写地图注释一样写出ULDS图层注释。
  *    这些图层会默认在所有地图上显示。
  *    如果希望在某张地图上隐藏所有全局ULDS图层，在地图备注栏中这样写即可：
+ * 
  *      <Ignore ULDS Global>
  * 
- * 2. “frame”参数
  * 
- *    添加了新功能，允许开发人员截取一张图中的一部分用作图片的图像。
- *    这样就可以把许多小摆件整合到同一张图片上调取。
+ * ---------------------------------
+ * 2. 预设ULDS图层
  * 
- *    在注释中添加如下参数：
+ *    在插件参数“预设ULDS图层列表”中，可以预设ULDS图层注释，方便统一管理，
+ *    有了这个功能，就可以很方便地做出跨地图通用的昼夜照明、环境光效等效果。
  * 
- *    "frame": "{x: x坐标, y: y坐标, w: 宽度, h: 高度}"
+ *    要使用预设ULDS图层，在地图备注栏中写如下标签即可：
  * 
- *    x坐标、y坐标、宽度、高度的单位均为*像素*。
- *    (x坐标, y坐标) 是开始截取图片的位置坐标。
- *    宽度和高度指的是要截取的图像的宽高。
- *    例如：
+ *      <ULDS Preset: [KEY]>
  * 
- * <ulds> {
- *     "name": "Inside_C",
- *     "path": "tilesets",
- *     "x": "this.rx(100)",
- *     "y": "this.ry(50)",
- *     "z": 4,
- *     "frame": "{x: 240, y: 240, w: 48, h: 48}"
- * } </ulds>
- *    - 在地图中使用位于 img/tilesets/ 中的 Inside_C.png 图像作为源图像。
- *      以源图像左上角为原点，从 (240, 240) 处截取宽高各为 48 的图像用作要
- *      显示的部分，并将图片放在相对于地图 (100, 50) 的位置处。
- *      该图片Z层级是4。
- * 
- *    这样，地图上就会出现一盘炒饭。
- * 
- *    如果小摆件的尺寸和摆放方式、源图像的大小恰好和图块组中B、C、D、E类型图块图片
- *    一模一样，那么 frame 参数的值也可以这样写：
- * 
- *    "frame": "{tx: x坐标, ty: y坐标, tw: 宽度, th: 高度}"
- * 
- *    此时：
- *    x坐标 - 截取部分最左上角的图块是从左往右数第几块图块。
- *    y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
- *    宽度 - 截取部分的宽度相当于几块图块。省略时默认为 1。
- *    高度 - 截取部分的高度相当于几块图块。省略时默认为 1。
- *    例如：
- * 
- * <ulds> {
- *     "name": "Inside_C",
- *     "path": "tilesets",
- *     "x": "this.rx(100)",
- *     "y": "this.ry(50)",
- *     "z": 4,
- *     "frame": "{tx: 6, ty: 6}"
- * } </ulds>
- *    - 效果同上一个注释。地图上会出现一盘炒饭。
- * 
- * <ulds> {
- *     "name": "Inside_C",
- *     "path": "tilesets",
- *     "x": "this.rx(100)",
- *     "y": "this.ry(50)",
- *     "z": 4,
- *     "frame": "{tx: 13, ty: 6, tw: 1, th: 2}"
- * } </ulds>
- *    - 地图上会出现一尊士兵雕像。
- * 
- *    注意，经实测，"frame"参数对"loop"参数为true的图片无效。
+ *    [KEY] 是插件参数中设置的关键字，大小写不敏感。
+ *    这样，该地图就会应用对应的预设图层注释。
+ *    注：每个预设可包括不止一条图层注释。
  * 
  * 
- *    == 更多实例 ==
+ *    预设图层还支持 RM 专用的占位符。
  * 
- *    1) 动态帧图层 [1张*从左到右*摆放动画帧图片, 1条注释]
+ *    在地图备注栏中这样写标签：
  * 
- *    假设图层相对于地图位于(144, 144)，使用 Water_Animated.png 作为图像，
- *    图片中动画共有3帧，每帧间隔20帧 (1/3秒)，
- *    图片动画帧*从左到右*摆放，且要*循环播放*，
- *    则创建以以下格式书写的地图注释：
+ *      <ULDS Preset: [KEY], [PARAM_1], [PARAM_2], ...>
+ * 
+ *    各项 [PARAM] 会按顺序替换预设图层注释中出现的 %1，%2，... 占位符。
+ *    [PARAM] 可以是数字，可以是文本，也可以是代码（例如 s.value(8) 等）。
+ * 
+ *    例如，如果预设的关键字是test，图层注释包括：
+ * 
+ * // 图层1：
  * <ulds>{
- *     "name": "Water_Animated",
- *     "x": "this.rx(144)",
- *     "y": "this.ry(144)",
- *     "z": 1,
- *     "frame": "{y: 0, w: 96, h: 96, x: (function(){var frameCount = 3; var frameInverval = 20; var size = 96; var isCharAnime = false; var result=0;var f=Math.floor(t/frameInverval);var realFrameCount=isCharAnime?(frameCount-1)*2:frameCount;var currentFrameUnderTurn=Math.floor(f%realFrameCount);if(isCharAnime){if(currentFrameUnderTurn<frameCount){result=currentFrameUnderTurn*size;}else{result=(realFrameCount-currentFrameUnderTurn)*size;}}else{result=currentFrameUnderTurn*size;}return result;})()}"
- * }</ulds>
- *     在这个例子中，w 和 h 分别为一帧动画的宽高，
- *     frameCount 指的是图片中包含几帧动画，frameInverval 是帧间隔。
- *     size 则应该等于 w，即一帧动画的宽度。
+ *     "name": "图片_1",
+ *     "x": 0,
+ *     "y": 0,
+ *     "z": 5,
+ *     "visible": "s.value(%1)",
+ *     "opacity": "v.value(%2)"
+ * }<ulds>
+ * // 图层2：
+ * <ulds>{
+ *     "name": "图片_2",
+ *     "x": 0,
+ *     "y": 0,
+ *     "z": 5,
+ *     "visible": "s.value(%3)",
+ *     "opacity": "v.value(%4)"
+ * }<ulds>
  * 
- *     isCharAnime 控制播放方式。
- *     当图片中的动画帧这样摆放：[1][2][3]
- *     如果将 isCharAnime 设为 false (如上例)，那么播放方式为：
- *     > [1][2][3][1][2][3][1][2]...
- *     如果将 isCharAnime 设为 true，播放方式则为：
- *     > [1][2][3][2][1][2][3][2][1][2]...
+ *    而地图备注栏的标签这样写：
  * 
- *     ※ 同样的例子，
- *     如果动画图片中的动画帧是*从上到下*摆放的，
- *     那么将 frame 参数中的 y 和 x 的位置交换就可以了。
- *     即：
- *     "frame": "{x: 0, w: 96, h: 96, y: (function(){var frameCount = 3; var frameInverval = 20; var size = 96; var isCharAnime = false; var result=0;var f=Math.floor(t/frameInverval);var realFrameCount=isCharAnime?(frameCount-1)*2:frameCount;var currentFrameUnderTurn=Math.floor(f%realFrameCount);if(isCharAnime){if(currentFrameUnderTurn<frameCount){result=currentFrameUnderTurn*size;}else{result=(realFrameCount-currentFrameUnderTurn)*size;}}else{result=currentFrameUnderTurn*size;}return result;})()}"
+ *      <ULDS Preset: test, 10, 11, 12, 13>
+ * 
+ *    那么就相当于：
+ *    开关#10 控制 图层1 的 visible，变量#11 控制 图层1 的 opacity；
+ *    开关#12 控制 图层2 的 visible，变量#13 控制 图层2 的 opacity。
  * 
  * 
+ * -------------------------------------------------------------------
+ * 3. 获取并扩展 ULDS.Sprite() 与 ULDS.TilingSprite()
+ * 
+ *    详情见以下两个方法：
+ *    ULDS.TilingSprite():
+ *      Spriteset_Map.prototype.__private_ULDS_E_initializeULDSTilingSprite
+ *    ULDS.Sprite():
+ *      Spriteset_Map.prototype.__private_ULDS_E_initializeULDSSprite
+ * 
+ *    在方法内操作参数 constructor(.prototype) 即可。
+ * 
+ *    注：这种写法健壮性不足，能修改原插件还请尽量修改原插件。
+ * 
+ * 
+ * -------------------------------------------------------------------
  * === 使用条款 ===
  * 
  * MIT License
  * 
  * 
+ * -------------------------------------------------------------------
  * === 更新日志 ===
  * 
  * 1.0.0 - 完成。
@@ -138,6 +126,30 @@
  * @text 全局ULDS图层设置
  * @type note
  * @desc 设置应用于所有地图的ULDS图层。在这里写 ULDS 注释。可使用忽略标签以防图层显示在特定地图中。详见插件帮助。
+ * @default ""
+ * 
+ * @param Layers Presets
+ * @text 预设ULDS图层列表
+ * @type struct<lp>[]
+ * @desc 在这里预设ULDS图层。方便重复使用。具体见插件帮助。
+ * @default []
+ */
+/*~struct~lp:
+ * 
+ * @param Note
+ * @text 备注
+ * @desc 该图层注释的备注。方便管理。
+ * @default 
+ * 
+ * @param Key
+ * @text 关键字
+ * @desc 该图层注释的关键字。相对于其他图层的关键字必须是独一无二的。不建议包含标点符号。详情见插件帮助。
+ * @default 
+ * 
+ * @param Content
+ * @text ULDS图层注释内容
+ * @type note
+ * @desc 在此书写ULDS图层设置。可以像写在地图备注栏里一样，写不止一条注释。
  * @default ""
  */
 var Imported = Imported || {};
@@ -154,6 +166,14 @@ RSSD.ULDS_E.ULDS_RE = /<ulds>([^]*?)<\/ulds>/ig;
 RSSD.ULDS_E.parameters = PluginManager.parameters(RSSD.ULDS_E.pluginName);
 RSSD.ULDS_E.globalLayersNote = JSON.parse(RSSD.ULDS_E.parameters['Global Layers Note'] || "\n");
 RSSD.ULDS_E.ignoreGlobalLayers_RE = /<Ignore ULDS Global>/ig;
+
+RSSD.ULDS_E.uldsPresets = {};
+var temp_arr = JSON.parse(RSSD.ULDS_E.parameters['Layers Presets'] || '[]');
+temp_arr.forEach(e => {
+    const obj = JSON.parse(e);
+    RSSD.ULDS_E.uldsPresets[obj.Key.toUpperCase()] = JSON.parse(obj.Content || "\n");
+});
+RSSD.ULDS_E.ULDS_Preset_RE = /<ULDS Preset:([^]*?)>/ig;
 
 RSSD.ULDS_E.isProperlyInstalled = (()=>{
     const index_ULDS = $plugins.findIndex(p => p.name === RSSD.ULDS_E.ULDS_pluginName);
@@ -178,19 +198,41 @@ if(RSSD.ULDS_E.isProperlyInstalled) {
     let __ULDS_E_Spriteset_Map_createTilemap = Spriteset_Map.prototype.createTilemap;
     Spriteset_Map.prototype.createTilemap = function() {
         this.__private_ULDS_E_manipulateMapNote();
+        __ULDS_E_Spriteset_Map_createTilemap.call(this);
         this.__private_ULDS_E_manipulateULDSSpriteClass();
         this.__private_ULDS_E_reviveMapNote();
     };
 
     Spriteset_Map.prototype.__private_ULDS_E_manipulateMapNote = function() {
+        this.__private_ULDS_E_applyGlobalLayer();
+        this.__private_ULDS_E_applyPresetLayers();
+    };
+
+    Spriteset_Map.prototype.__private_ULDS_E_applyGlobalLayer = function() {
         const isGlobalLayersHidden = RSSD.ULDS_E.ignoreGlobalLayers_RE.test($dataMap.note);
         if(!isGlobalLayersHidden) {
             const note = RSSD.ULDS_E.globalLayersNote;
             $dataMap.note = note + $dataMap.note;
-            __ULDS_E_Spriteset_Map_createTilemap.call(this);
-        } else {
-            __ULDS_E_Spriteset_Map_createTilemap.call(this);
         }
+    };
+
+    Spriteset_Map.prototype.__private_ULDS_E_applyPresetLayers = function() {
+        $dataMap.note = $dataMap.note.replace(RSSD.ULDS_E.ULDS_Preset_RE, function(_match, value){
+            const params = value.split(',').map(e => e.trim());
+            const key = params.shift();
+            k = key.toUpperCase();
+            if(k && RSSD.ULDS_E.uldsPresets[k] !== undefined) {
+                return RSSD.ULDS_E.uldsPresets[k].format(...params)+'\n';
+            } else {
+                if(!k) console.error("A ULDS Preset key is invalid. Please check the map note.");
+                else console.error(`The ULDS Preset key "${key}" is invalid. Please check the map note.`);
+            }
+        });
+    };
+
+    Spriteset_Map.prototype.__private_ULDS_E_reviveMapNote = function() {
+        const note = RSSD.ULDS_E.globalLayersNote;
+        $dataMap.note = $dataMap.note.replace(note, '');
     };
 
     Spriteset_Map.prototype.__private_ULDS_E_manipulateULDSSpriteClass = function() {
@@ -218,71 +260,13 @@ if(RSSD.ULDS_E.isProperlyInstalled) {
         }
     };
 
-    Spriteset_Map.prototype.__private_ULDS_E_reviveMapNote = function() {
-        const note = RSSD.ULDS_E.globalLayersNote;
-        $dataMap.note = $dataMap.note.replace(note, '');
-    };
-
     Spriteset_Map.prototype.__private_ULDS_E_initializeULDSTilingSprite = function(constructor) {
         RSSD.ULDS_E.ULDS_TilingSprite_Constructor = constructor;
-        this.__private_defineFrameToSprite(constructor);
+        // Feel free to extend more...
     };
 
     Spriteset_Map.prototype.__private_ULDS_E_initializeULDSSprite = function(constructor) {
         RSSD.ULDS_E.ULDS_Sprite_Constructor = constructor;
-        this.__private_defineFrameToSprite(constructor);
-    };
-
-    /**
-     * Allows you to use just a part of the image source
-     * in case you have too many doodads and you don't want to use them as seperated image files.
-     */
-    Spriteset_Map.prototype.__private_defineFrameToSprite = function(constructor) {
-        /**
-         * The property for ULDS.Sprite frame.
-         *
-         * @type object
-         * @name ULDS.Sprite#frame
-         */
-        Object.defineProperty(constructor.prototype, "frame", {
-            "get": function() {
-                return this._frame;
-            },
-            "set": function(params) {
-                // params: {tx: tile_x, ty: tile_y, tw: tile_width, th: tile_height}
-                // params: {x: x, y: y, w: width, h: height}
-                var frame = this._frame;
-                if(params instanceof Object) {
-                    if(params.tx !== undefined) {
-                        // in tileSizes
-                        var tileWidth = $gameMap.tileWidth();
-                        var tileHeight = $gameMap.tileHeight();
-                        var x = (+params.tx - 1) * tileWidth;
-                        var y = (+params.ty - 1) * tileHeight;
-                        var w = (+(params.tw || "1")) * tileWidth;
-                        var h = (+(params.th || "1")) * tileHeight;
-                        if(frame.x !== x || frame.y !== y || frame.width !== w || frame.height !== h) {
-                            this._frame.x = x;
-                            this._frame.y = y;
-                            this._frame.width = w;
-                            this._frame.height = h;
-                            this._refresh();
-                        }
-                    } else {
-                        // in pixels
-                        if(frame.x !== params.x || frame.y !== params.y || frame.width !== params.w || frame.height !== params.h) {
-                            this._frame.x = +params.x;
-                            this._frame.y = +params.y;
-                            this._frame.width = +params.w;
-                            this._frame.height = +params.h;
-                            this._refresh();
-                        }
-                    }
-                } else {
-                    throw new Error('The property of ULDS Sprite "frame" should be an object.')
-                }
-            },
-            configurable: true
-        });
+        // Feel free to extend more...
     };
 }
