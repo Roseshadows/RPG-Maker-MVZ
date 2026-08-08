@@ -144,6 +144,7 @@ y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
 }</ulds>
 ```
 使用 img/system/ 下的 IconSet.png 作为图标集，选择索引为 4 的图标。
+
 **！注意！**图标集的总宽度和格式必须和 IconSet.png 一致。
 如果想绘制更大或更小的图像，请使用 `frame` 属性。
 <br>
@@ -163,6 +164,19 @@ y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
     "bitmapIcon": "(function(){var sId=5; var index1=17; var index2=18;if(s.value(sId)){return index2;}return index1;})()"
 }</ulds>
 ```
+
+> ※ 如果行走图不止一格宽（*自定义宽度*），就将 `x` 参数改为：
+> ```
+> "x": "this.rx(CHAR_WIDTH*1/2+($gamePlayer._realX)*$gameMap.tileWidth())"
+> ```
+> `CHAR_WIDTH` 是行走图一帧的宽度，单位像素。
+
+> ※ 如果行走图不止一格高（*自定义高度*），就将 `y` 参数改为：
+> ```
+> "y": "this.ry(CHAR_HEIGHT+($gamePlayer._realY+1)*$gameMap.tileHeight())"
+> ```
+> `CHAR_HEIGHT` 是行走图一帧的高度，单位像素。
+
 <br><br>
 
 ------
@@ -323,3 +337,86 @@ y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
 文本5
 文本6
 ```
+
+<br>
+
+##### 实例1：角色头顶(单行)文字
+
+若想在事件#15头顶显示“商人”字样，则创建以下格式的地图注释：
+
+```
+<ulds>{
+    "x": "this.rx(($gameMap.event(15)._realX+1/2)*$gameMap.tileWidth())",
+    "y": "this.ry(($gameMap.event(15)._realY)*$gameMap.tileHeight())",
+    "z": 5,
+    "anchor.x": 0.5,
+    "anchor.y": 1,
+    "bitmapText": {text: "商人"}
+}</ulds>
+```
+
+> ※ 如果行走图不止一格宽（自定义宽度），就将 `x` 参数改为：
+> ```
+> "x": "this.rx(CHAR_WIDTH*1/2+($gameMap.event(15)._realX)*$gameMap.tileWidth())
+> ```
+> `CHAR_WIDTH` 是行走图一帧的宽度，单位像素。
+
+> ※ 如果行走图不止一格高（自定义高度），就将 `y` 参数改为：
+> ```
+> "y": "this.ry(CHAR_HEIGHT+($gameMap.event(15)._realY+1)*$gameMap.tileHeight())"
+> ```
+> `CHAR_HEIGHT` 是行走图一帧的高度，单位像素。
+
+> ※ 如果想将文字绑定到玩家或跟随者头顶，用对应的代码替换 `$gameMap.event(15)` 即可。
+> 详情见[原版插件教程](./tutorial-original.md#m-5-5)。
+
+<br>
+
+##### 实例2：与开关相关联的(单行)动态文字
+
+参考 `bitmapIcon` 属性的实例，将图标改为文字形式：
+假设玩家可以赋予“神力加持”状态，当被赋予这个状态时，开关#5就会打开，此时头上的文字会从“修养中”变为“神力加持中”，而失去这个状态时情况相反。
+那么图层注释可以这样写：
+
+```
+<ulds>{
+    "x": "this.rx(($gamePlayer._realX+1/2)*$gameMap.tileWidth())",
+    "y": "this.ry(($gamePlayer._realY)*$gameMap.tileHeight())",
+    "z": 5,
+    "anchor.x": 0.5,
+    "anchor.y": 1,
+    "bitmapText": "{text: (function(){var sId=5; var t_off=\"修养中\"; var t_on=\"神力加持中\";if(!s.value(sId)){return t_off;}else{return t_on;}})()}"
+}</ulds>
+```
+
+文字内容会根据开关值动态更新。
+
+> ※ 如果想将文字绑定到玩家或跟随者头顶，用对应的代码替换 `$gamePlayer` 即可。
+> 详情见[原版插件教程](./tutorial-original.md#m-5-5)。
+
+<br>
+
+##### 实例3：角色头顶多行变量显示框
+
+假设玩家头顶要显示两行数值，一项“精神力”，另一项“净化值”，“精神力”绑定变量#6，“净化值”绑定变量#7，要在玩家头顶显示的文字排列如下：
+```
+精神力：[数值]
+净化值：[数值]
+```
+那么图层注释可以这样写：
+
+```
+<ulds> {
+    "x": "this.rx(($gamePlayer._realX+1/2)*$gameMap.tileWidth())",
+    "y": "this.ry(($gamePlayer._realY)*$gameMap.tileHeight())",
+    "z": 5,
+    "anchor.x": 0.5,
+    "anchor.y": 1,
+    "bitmapText": "[{text: \"精神力：\"+String(v.value(6))}, {text: \"净化值：\"+String(v.value(7))}]"
+} </ulds>
+```
+
+文字内容会根据变量值动态更新。
+
+> ※ 如果想将文字绑定到玩家或跟随者头顶，用对应的代码替换 `$gamePlayer` 即可。
+> 详情见[原版插件教程](./tutorial-original.md#m-5-5)。
