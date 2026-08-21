@@ -13,10 +13,7 @@
  * 
  * 本插件扩展了 ULDS.js 插件的功能：
  * 1. 设置全局ULDS图层，默认可在所有地图显示，无需复制粘贴注释；
- * 2. 预设ULDS图层，方便在多个地图上重复使用；
- * 3. 提供在 ULDS.js 外部获取 ULDS.Sprite() 和 ULDS.TilingSprite() 
- *    的 constructor 并对其扩展的方法。
- * 具体参见“使用方法”。
+ * 2. 预设ULDS图层，方便在多个地图上重复使用。
  * 
  * ！注意！请将该插件放到紧邻 ULDS.js 插件之下的位置。否则无效果。
  * 即，在插件管理器中，本插件必须为 ULDS.js 的下一个插件。
@@ -67,7 +64,7 @@
  *    各项 [PARAM] 会按顺序替换预设图层注释中出现的 %1，%2，... 占位符。
  *    [PARAM] 可以是数字，可以是文本，也可以是代码（例如 s.value(8) 等）。
  * 
- *    例如，如果预设的关键字是test，图层注释包括：
+ *    例如，如果预设图层的关键字是test，图层注释包括：
  * 
  * // 图层1：
  * <ulds>{
@@ -95,20 +92,6 @@
  *    那么就相当于：
  *    开关#10 控制 图层1 的 visible，变量#11 控制 图层1 的 opacity；
  *    开关#12 控制 图层2 的 visible，变量#13 控制 图层2 的 opacity。
- * 
- * 
- * -------------------------------------------------------------------
- * 3. 获取并扩展 ULDS.Sprite() 与 ULDS.TilingSprite()
- * 
- *    详情见以下两个方法：
- *    ULDS.TilingSprite():
- *      Spriteset_Map.prototype.__private_ULDS_E_initializeULDSTilingSprite
- *    ULDS.Sprite():
- *      Spriteset_Map.prototype.__private_ULDS_E_initializeULDSSprite
- * 
- *    在方法内操作参数 constructor(.prototype) 即可。
- * 
- *    注：这种写法健壮性不足，能修改原插件还请尽量修改原插件。
  * 
  * 
  * -------------------------------------------------------------------
