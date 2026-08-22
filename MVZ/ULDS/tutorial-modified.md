@@ -438,6 +438,29 @@ y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
 > ※ 如果想将文字绑定到玩家或跟随者头顶，用对应的代码替换 `$gamePlayer` 即可。
 > 详情见[原版插件教程](./tutorial-original.md#m-5-5)。
 
+<br>
+
+##### <span id="property-bitmapText-4">实例4：类新闻屏幕底部滚动文字</span>
+
+假设想复刻新闻底部滚动文字一样的效果，在屏幕底部循环播放“这是滚动文本”的字样，字号 22 像素，则创建以下格式的地图注释：
+
+```
+<ulds>{
+  "bitmapText": "{text: \"这是滚动文本           \", fontSize: 22}",
+  "x": "this.rx(-t)",
+  "loop": true,
+  "anchor.y": 1,
+  "viewport": "{x: 0, y: Graphics.height, w: Graphics.width, h: 26}"
+}</ulds>
+```
+
+>  ※ 关于 `viewport` 属性，见[“viewport”属性](#property-viewport)部分。
+
+在注释中，`viewport` 的参数 `h` 应该是 `bitmapText` 中所设文字的行高减去字号，除以 2，再加上字号。如果没有设置行高，行高默认比字号大 8 像素，所以 h 的值设为 字号+4 即可。
+
+>  **！注意！**每条滚动文本之间的空挡，实际是通过在文本之后手动添加空格来实现的。
+>  如果希望增加或减少每条文本之间的距离，可以添加或减少 `bitmapText` 的 `text` 参数中文字后面的空格。
+
 <br><br>
 
 ------
@@ -568,3 +591,9 @@ y坐标 - 截取部分最左上角的图块是从上往下数第几块图块。
 ```
 "viewport": "{x: 显示X坐标, y: 显示Y坐标, w: 显示宽度, h: 显示高度}"
 ```
+
+<br>
+
+##### 实例1：类新闻屏幕底部滚动文字
+
+（见 `bitmapText` 属性的[实例4：类新闻屏幕底部滚动文字](#property-bitmapText-4)）
