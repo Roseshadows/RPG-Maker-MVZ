@@ -4,7 +4,7 @@
 /*:
  * @target MZ MV
  * @plugindesc 无限图层显示系统 (内附详细教程 + 新功能)
- * [修改版 v1.5.0]
+ * [修改版 v1.6.0]
  * @author taroxd
  * @url https://blog.taroxd.com/mvmz-plugins/ULDS.html
  *
@@ -40,6 +40,9 @@
  *    2) 使用宽高小于屏幕宽高的图像时，平铺效果错误。
  * 6. 基于上述修复的 Bug，对于 loop 属性为 true 的图层，添加 viewport 属性，
  *    这样就可以控制图层在什么位置、多少宽高内平铺（相当于设定了一个视口）。
+ * 7. 添加 attachID 和 attachment 属性，允许开发人员将图层绑定到另一个图层上
+ *    （成为另一个图层的子元素）。作为子对象的图层将和所绑定的图层的变换属性
+ *    保持一致。
  * 
  * 详情见插件帮助的以下章节：
  * 1. 地图注释（基础）
@@ -115,7 +118,8 @@
  *      指定图片可以覆盖在z层级小于该图片z层级的所有图片之上。
  *      例如，若指定A图片z层级为6，B图片z层级为10，则A图片会覆盖所有z层级低于6
  *      的贴图，但会被B图片覆盖。
- *      RMMV中各贴图的原生层级：0 -> 远景，3 -> 玩家/事件，4 -> 星标图块。
+ *      RMMV中各贴图的原生层级：
+ *      0 -> 远景，3 -> 玩家/事件，4 -> 星标图块，7 -> 气泡，8 -> 动画，10 -> 目的地光标。
  *
  * "path": 自定义图片所在的文件夹。文件夹必须在img文件夹里。默认是parallaxes
  *         （插件参数中可配置）
@@ -405,6 +409,42 @@
  *                由于 ULDS 平铺类型图层的 x 和 y 的功能和普通图层不同，
  *                直接设置 x, y 只会改变平铺图层左上角第一帧图像相对于整张图层的位置，
  *                设置 viewport 的 x, y 实质才相当于设置普通图层的 x 和 y 。
+ * 
+ * 
+ * "attachID": 将图层设置为可绑定到另一图层上的图层（下称附件图层）。值是一个字符串。
+ *             具体使用见 "attachment" 参数。
+ *             参数格式：
+ * 
+ *             "attachID": "附件图层关键字"
+ * 
+ *             - 将图层设为附件图层，关键字为“附件图层关键字”，以便在 attachment 中使用。
+ * 
+ *             附件图层和普通图层有同样的属性可设置。
+ *             所以，不止图片，结合 bitmapText 或 bitmapIcon，
+ *             也可以将文字和图标绑定到其他图层上，做出伪菜单等效果。
+ * 
+ * 
+ * "attachment": 向图层绑定预设的附件图层。
+ *               值是一个字符串，若要绑定多个附件图层，则用英文逗号分隔关键字。
+ *               附件图层会和关联图层的属性（x坐标、y坐标、缩放、旋转等）同步。
+ *               实质是将附件图层设为图层的子元素（child）。
+ * 
+ *               要使用附件图层，首先需要定义附件图层。定义方式见 "attachID" 的参数格式。
+ *               然后，在需要附件图层的图层中这样写：
+ * 
+ *               "attachment": "附件图层关键字"
+ * 
+ *               - 将预设的关键字为“附件图层关键字”的附件图层绑定到图层上。
+ * 
+ *               "attachment": "附件1, 附件2, 附件3"
+ * 
+ *               - 将预设的关键字为“附件1”“附件2”和“附件3”这三张附件图层绑定到图层上。
+ * 
+ *               使用注意事项：
+ *                1) 附件图层只能用于当前地图上的图层；
+ *                2) 同一地图中，每个附件图层ID必须独一无二；
+ *                3) 必须在使用附件图层前定义附件图层（用作附件图层的图层的注释
+ *                   必须写在需要附件图层的图层之前）。
  *
  *
  * 
@@ -617,11 +657,46 @@
  * 5. "viewport"
  * 
  * <ulds>{
- *     "x": 0,
- *     "y": 0,
- *     "viewport": "{x: 30, y: 50, w: 400, h: 600}"
+ *   "name": "pattern",
+ *   "x": t,
+ *   "viewport": "{x: 30, y: 50, w: 400, h: 600}",
+ *   "loop": true
  * }</ulds>
- * - 平铺图层显示在相对于屏幕的 (30, 50)，实际显示宽度为 400 像素，高度为 600 像素。
+ * - 显示 img/parallaxes/ 下的 pattern.png 图片，并显示为平铺类型的图层。
+ *   平铺图层显示在相对于屏幕的 (30, 50)，实际显示宽度为 400 像素，高度为 600 像素。
+ *   图像将按1帧1像素的速度从左向右滚动播放。
+ * 
+ * 
+ * 6. "attachID"
+ * 
+ * <ulds>{
+ *   "name": "attachment_layer",
+ *   "anchor.x": 0.5,
+ *   "anchor.y": 0.5,
+ *   "attachID": "123"
+ * }</ulds>
+ * - 将 img/parallaxes/ 下的 attachment_layer.png 设为附件图层，关键字为 123。
+ *   图层锚点设在 (0.5, 0.5)，即图像正中央。
+ *   图层的位置和所绑定的图层相一致。
+ * 
+ * 
+ * 7. "attachment"
+ * 
+ * (沿用上一条设置 attachID 的图层)
+ * <ulds>{
+ *   "name": "image",
+ *   "path": "system",
+ *   "anchor.x": 0.5,
+ *   "anchor.y": 0.5,
+ *   "x": 200,
+ *   "y": 300,
+ *   "attachment": "123"
+ * }</ulds>
+ * - 向 img/sytem/ 下的 image.png 绑定关键字为“123”的附件图层。
+ *   该图层锚点设在 (0.5, 0.5)，即图像正中央。
+ *   图层位于相对于屏幕 (0, 0) 的位置 (屏幕左上角)。
+ *   注：因为附件图层的锚点也是在图像正中央，且继承绑定目标图层的位置，
+ *   所以附件图层会被绑定在目标图层的正中央。
  *
  *
  *
@@ -1202,6 +1277,16 @@ void function() {
         },
 
         update: function() {
+            // Modification
+            // Bug Fix: Cannot update the sprite's children.
+            // "update" is invalid for ULDS.Sprite's and ULDS.TilingSprite's children because "update" method set in Helper overrides the method from Sprite() and TilingSprite().
+            for (var i = 0; i < this.children.length; i++) {
+                var child = this.children[i];
+                if (child.update) {
+                    child.update();
+                }
+            }
+            // Modification End
             ++this.t;
             this._updater(this.t, $gameSwitches, $gameVariables);
         },
@@ -1245,14 +1330,6 @@ void function() {
         var bitmap = ImageManager.loadBitmap('img/' + settings.path + '/',
             settings.name, settings.hue, settings.smooth);
         var sprite = new spriteClass(bitmap);
-        
-        // Modification
-        // for maskID property
-        if(settings.maskID) {
-            $gameULDSMasks.registerSprite(settings.maskID, sprite);
-        }
-        delete settings.maskID;
-        // Modification End
 
         delete settings.path;
         delete settings.name;
@@ -1261,6 +1338,27 @@ void function() {
         delete settings.smooth;
 
         sprite.assignSettings(settings);
+        
+        // Modification
+        // for maskID property
+        if(settings.maskID) {
+            $gameULDSMasks.registerSprite(settings.maskID, sprite);
+        }
+        delete settings.maskID;
+        // for attachID and attachment property
+        if(settings.attachID) {
+            $gameULDSSublayers.setSubLayer(settings.attachID, sprite);
+        }
+        if(settings.attachment) {
+            var attachment = settings.attachment.split(',').map(t => t.trim());
+            attachment.forEach((a)=>{
+                sprite.addChild($gameULDSSublayers.sublayer(a));
+            });
+            $gameULDSSublayers.setParentLayer(sprite);
+        }
+        delete settings.attachID;
+        delete settings.attachment;
+        // Modification End
 
         return sprite;
     }
@@ -1277,7 +1375,7 @@ void function() {
     ULDS.TilingSprite = function(bitmap) {
         TilingSprite.call(this, bitmap);
         bitmap.addLoadListener(function() {
-            // Bug Fix: TilingSprite with bitmap, whose width and/or height are/is smaller than the game viewport width and/or height, works inproperly (the display size only equals to the bitmap size).
+            // Bug Fix: TilingSprite with bitmap, whose width and/or height are/is smaller than the game screen width and/or height, works inproperly (the display size only equals to the bitmap size).
             this.move(0, 0, Math.max(bitmap.width, Graphics.width), Math.max(bitmap.height, Graphics.height));
             // Modification End
         }.bind(this));
@@ -1302,8 +1400,9 @@ void function() {
     Spriteset_Map.prototype.createTilemap = function() {
         ct.call(this);
         // Modification
-        // initialize masks data per map
+        // initialize data per map
         $gameULDSMasks.clear();
+        $gameULDSSublayers.clear();
         // Modification End
         $dataMap.note.replace(RE, function(_match, settings) {
             var isValid = false;
@@ -1318,7 +1417,13 @@ void function() {
                 console.log(settings);
             }
             if (isValid) {
-                this._tilemap.addChild(ULDS(settings));
+                // Modification
+                // Avoid repetitive child-addtion for sublayers
+                var sprite = ULDS(settings);
+                if($gameULDSSublayers.isParentlayer(sprite) || $gameULDSSublayers.isNormalLayer(sprite)) {
+                    this._tilemap.addChild(sprite);
+                }
+                // Modification End
             }
         }.bind(this));
     };
@@ -1334,6 +1439,7 @@ void function() {
     DataManager.createGameObjects = function() {
         _RSSD_ULDS_DataManager_createGameObjects.call(this);
         $gameULDSMasks = new Game_ULDSMasks();
+        $gameULDSSublayers = new Game_Sublayers();
     };
 
     /**
@@ -1374,6 +1480,56 @@ void function() {
 
     Game_ULDSMasks.prototype.registerGraphics = function(graphics) { // graphics: the sprite to which the graphics instance converted.
         this._data_g.push(graphics);
+    };
+
+    /**
+     * Game_ULDSSublayers
+     * The game object class for containing ready-for-use sublayer sprites.
+     */
+
+    window.$gameULDSSublayers = null;
+
+    function Game_Sublayers() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Game_Sublayers.prototype.initialize = function() {
+        this.clear();
+    };
+
+    Game_Sublayers.prototype.clear = function() {
+        this._parents = [];
+        this._children = {};
+    };
+
+    Game_Sublayers.prototype.parents = function() {
+        return this._parents;
+    };
+
+    Game_Sublayers.prototype.sublayer = function(key) {
+        return this._children[key];
+    };
+
+    Game_Sublayers.prototype.setParentLayer = function(sprite) {
+        this._parents.push(sprite);
+    };
+
+    Game_Sublayers.prototype.setSubLayer = function(key, sprite) {
+        this._children[key] = sprite;
+    };
+
+    Game_Sublayers.prototype.isSublayer = function(sprite) {
+        var values = Object.values(this._children);
+        return values.includes(sprite);
+    };
+
+    Game_Sublayers.prototype.isParentlayer = function(sprite) {
+        var values = Object.values(this._parents);
+        return values.includes(sprite);
+    };
+
+    Game_Sublayers.prototype.isNormalLayer = function(sprite) {
+        return !this.isSublayer(sprite) && !this.isParentlayer(sprite);
     };
 
     //==================================================================================
@@ -1487,7 +1643,9 @@ void function() {
                 if(icon) {
                     if(!isNaN(+icon)) {
                         const iconIndex = +icon;
-                        this._ULDS_bitmapIcon = {i:iconIndex, f:16};
+                        const str = `{i:${iconIndex},f:16}`;
+                        if(this._ULDS_bitmapIcon === str) return;
+                        this._ULDS_bitmapIcon = str;
                         const pw = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth;
                         const ph = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight;
                         const sx = (iconIndex % 16) * pw;
@@ -1498,7 +1656,9 @@ void function() {
                     } else if(icon instanceof Object) {
                         const iconIndex = +icon.i;
                         icon.i = iconIndex;
-                        this._ULDS_bitmapIcon = icon;
+                        const str = JSON.stringify(icon);
+                        if(this._ULDS_bitmapIcon === str) return;
+                        this._ULDS_bitmapIcon = JSON.stringify(icon);
                         const pw = icon.w || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth);
                         const ph = icon.h || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight);
                         const f = icon.f || 16;
@@ -1686,8 +1846,8 @@ void function() {
 
     newProperties_tilingSprite = {
         // Bug Fix: Cannot set TilingSprite's x and y properly.
-        // As the ULDS.TilingSprite override the definition of x and y, the actual x and y should be copied from pixi.js.
-        // The viewport x and y (aka. the actual x and y of the tiling sprite)
+        // As ULDS.TilingSprite overrides the definition of x and y, the actual x and y should be copied from pixi.js.
+        // viewport x and y (the actual x and y of the tiling sprite)
         "vx": {
             get: function() { return this.position.x; },
             set : function(value) { this.transform.position.x = value; }
