@@ -166,7 +166,7 @@ RSSD.ULDS_E.ULDS_Preset_RE = /<ULDS Preset:([^]*?)>/ig;
 RSSD.ULDS_E.isProperlyInstalled = (()=>{
     const index_ULDS = $plugins.findIndex(p => p.name === RSSD.ULDS_E.ULDS_pluginName);
     const index_Addons = $plugins.findIndex(p => p.name === RSSD.ULDS_E.pluginName);
-    if(index_ULDS > 0 && index_Addons - index_ULDS === 1) return true;
+    if(index_ULDS > -1 && index_Addons - index_ULDS === 1) return true;
     else if(index_ULDS === -1) console.error(`Cannot find ${RSSD.ULDS_E.ULDS_pluginName}.js for ${RSSD.ULDS_E.pluginName}.js.`);
     else if(index_Addons - index_ULDS !== 1) console.error(`${RSSD.ULDS_E.pluginName}.js must be the very next plugin installed after ${RSSD.ULDS_E.ULDS_pluginName}.js.`)
     return false;
