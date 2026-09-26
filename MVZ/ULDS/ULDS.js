@@ -4,9 +4,85 @@
 /*:
  * @target MZ MV
  * @plugindesc 无限图层显示系统 (内附详细教程 + 新功能)
- * [修改版 v1.6.0]
+ * [修改版 v1.8.0]
  * @author taroxd
  * @url https://blog.taroxd.com/mvmz-plugins/ULDS.html
+ * 
+ * @command getSwi
+ * @text 获取独立开关
+ * @desc 将图层的独立开关值赋值到指定游戏开关。
+ * 
+ * @arg key
+ * @text 关键字
+ * @desc 独立开关的关键字。对于 swiVarKey 属性值为该关键字的图层，该指令会获取和它所关联的开关组。
+ * @default 
+ * 
+ * @arg id
+ * @text 开关ID
+ * @desc 获取和关键字关联的开关组的指定ID开关。每组开关默认设有5个开关，所以该值不建议大于5。
+ * @default 
+ * 
+ * @arg tarId
+ * @text 目标游戏开关ID
+ * @type switch
+ * @desc 要将独立开关值赋值到哪个游戏开关？请填写开关ID。
+ * @default 0
+ * 
+ * @command setSwi
+ * @text 设置独立开关
+ * 
+ * @arg key
+ * @text 关键字
+ * @desc 独立开关的关键字。对于 swiVarKey 属性值为该关键字的图层，该指令会设置和它所关联的开关组。
+ * @default 
+ * 
+ * @arg id
+ * @text 开关ID
+ * @desc 设置和关键字关联的开关组的指定ID开关。每组开关默认设有5个开关，所以该值不建议大于5。
+ * @default 
+ * 
+ * @arg value
+ * @text 目标值
+ * @desc 打开还是关闭开关？开 - true，关 - false。可以使用评估代码。
+ * @default false
+ * 
+ * @command getVar
+ * @text 获取独立变量
+ * @desc 将图层的独立变量值赋值到指定游戏变量。
+ * 
+ * @arg key
+ * @text 关键字
+ * @desc 独立变量的关键字。对于 swiVarKey 属性值为该关键字的图层，该指令会获取和它所关联的变量组。
+ * @default 
+ * 
+ * @arg id
+ * @text 变量ID
+ * @desc 获取和关键字关联的变量组的指定ID变量。每组变量默认设有5个变量，所以该值不建议大于5。
+ * @default 
+ * 
+ * @arg tarId
+ * @text 目标游戏变量ID
+ * @type variable
+ * @desc 要将独立变量值赋值到哪个游戏变量？请填写变量ID。
+ * @default 0
+ * 
+ * @command setVar
+ * @text 设置独立变量
+ * 
+ * @arg key
+ * @text 关键字
+ * @desc 独立变量的关键字。对于 swiVarKey 属性值为该关键字的图层，该指令会设置和它所关联的变量组。
+ * @default 
+ * 
+ * @arg id
+ * @text 变量ID
+ * @desc 设置和关键字关联的变量组的指定ID变量。每组变量默认设有5个变量，所以该值不建议大于5。
+ * @default 
+ * 
+ * @arg value
+ * @text 目标值
+ * @desc 独立变量的目标值。数字或字符串都可以，取决于用途。可以使用评估代码。值设为字符串时，需要给文字前后加引号。
+ * @default 
  *
  * @param Default Path
  * @text 默认文件夹
@@ -21,6 +97,16 @@
  * @min -15
  * @max 15
  * @default 0.5
+ * 
+ * @param Max Self Switches Number
+ * @text 单组独立开关最大数量
+ * @desc 一组独立开关组内，最多可使用多少个开关？默认为 5 个。
+ * @default 5
+ * 
+ * @param Max Self Variables Number
+ * @text 单组独立变量最大数量
+ * @desc 一组独立变量组内，最多可使用多少个变量？默认为 5 个。
+ * @default 5
  *
  * @help 
  * ！注意！
@@ -43,6 +129,13 @@
  * 7. 添加 attachID 和 attachment 属性，允许开发人员将图层绑定到另一个图层上
  *    （成为另一个图层的子元素）。作为子对象的图层将和所绑定的图层的变换属性
  *    保持一致。
+ * 8. 添加 triggerEvent 和 triggerWhen 属性，允许开发人员设置可供玩家点击触发
+ *    代码的图层，还可为代码触发设置条件，只有满足条件且点击图层，才可运行代码。
+ *    该功能还包括了智能的点击检测功能，例如透明度检查和重叠图层触发优先级检查。
+ * 9. 添加可绑定图层的开关/变量组功能，并由此新增“ms”“mv”两个引用和 swiVarKey
+ *    属性，这样在制作复杂效果时，开发人员就不再需要大量占用游戏开关/变量。
+ *    同时，插件还提供了插件指令，允许开发人员在图层外部获取或修改指定独立
+ *    开关/变量。
  * 
  * 详情见插件帮助的以下章节：
  * 1. 地图注释（基础）
@@ -352,8 +445,7 @@
  *             
  *             蒙版是一个独立的图层，覆盖在所绑定的图层上方，
  *             负责控制所绑定的图层各部分的遮挡状态。
- *             通过检查蒙版各部分的明度（灰度），
- *             所绑定图层的对应部分的透明度会有所不同。
+ *             蒙版各部分的明度（灰度）不同，所绑定图层的对应部分的透明度也会有所不同。
  *             蒙版的颜色没有意义，所以蒙版最好是一张*黑白*图片。
  *             蒙版黑色（灰度最大）的部分对应的所绑定图层部分*完全透明*，
  *             而白色（灰度最小）的部分对应的所绑定图层部分*完全不透明*。
@@ -445,6 +537,46 @@
  *                2) 同一地图中，每个附件图层ID必须独一无二；
  *                3) 必须在使用附件图层前定义附件图层（用作附件图层的图层的注释
  *                   必须写在需要附件图层的图层之前）。
+ * 
+ * 
+ * "triggerEvent": 将图层设为可点击运行代码的图层（下称可点击图层）。
+ *                 活用该属性可以做出点击类解谜游戏。
+ *                 值是要运行的代码内容。
+ *                 ！注意！同一地图内，请不要设置过量的大型可点击图层，否则可能会产生性能问题。
+ *                 参数格式：
+ * 
+ *                 "triggerEvent": "v.setValue(2, v.value(2)+1)"
+ * 
+ *                 - 每点击一下图层，变量#2 的值就加 1。
+ * 
+ *                 该属性提供智能的点击检测功能，包括：
+ *                  1) 像素级透明度检查：当鼠标/手指点在图层黑色（#000000）或透明的部分时
+ *                     不会运行代码；
+ *                  2) 重叠图层触发优先级检查：当鼠标/手指点在多个图层的有效交叠处时，
+ *                     只触发最顶层图层（z层级相同时则是图层注释书写位置最靠后的图层）的代码。
+ *                  3) 图层的 visible 为 false 时不会被触发。
+ * 
+ *                 ！注意！以上点击检测功能对于附带 rotation 或 skew 属性的图层无效。
+ * 
+ *                 ※ 如果想扩大图层的可触发区域，可以在图层图像下面用白色涂满可触发区域，
+ *                    然后将图层的 blendMode 设置为 2（正片叠底），这样只要玩家点到白色
+ *                    区域内就可以运行代码。
+ * 
+ * 
+ * "triggerWhen": 为可点击图层设置代码运行条件。需搭配上述属性使用，否则无效。
+ *                值是一条判断式代码。
+ *                参数格式：
+ * 
+ *                "triggerWhen": "s.value(5)"
+ * 
+ *                - 只有当开关#5 打开时，图层才能被触发。
+ * 
+ *                ※ 如果想给同一张图设置不同条件下触发不同的代码，可以写多条图层注释，
+ *                每个图层都显示这张图片，每条注释中分别设置触发条件和触发代码，
+ *                然后控制 visible，需要实现什么情况就先将所有图层的 visible 设为 false，
+ *                再将对应的图层的 visible 设为 true。
+ * 
+ * "swiVarKey": 使用插件内置的独立开关/变量组。详情见 2. 地图注释（高级）。
  *
  *
  * 
@@ -489,8 +621,98 @@
  *
  * 一个地图中可以添加多个注释。利用z层级来控制各图层的叠加情况，就可以非常灵活
  * 地制作视差地图了！
+ * 
+ * 
+ * 
+ * 修改版新增功能：
+ * 
+ * 如果看到 5. 技巧 章节，不难发现一些功能需要占用游戏开关/变量。
+ * 例如“自由淡入淡出”，其中就包含一些只读变量，
+ * 这些变量和与游戏机制相关联的变量混用，会变得繁杂、不好管理。
+ * 
+ * 该版本插件专门设置了按照关键字分组的独立开关组和独立变量组，
+ * 每个开关组和变量组内最多各有5个开关/变量可使用（最大数量可在插件参数设置）。
+ * 只要在图层注释中添加 swiVarKey 属性并为其设置关键字，
+ * 那么通过新增的两个引用“ms”和“mv”，
+ * 就可以将关键字对应的开关组和变量组使用到这个图层，
+ * 从而不再需要占用游戏开关/变量。
+ * ！注意！和游戏开关/变量一样，独立开关/变量组也是跨地图通用的。
+ * 具体操作方式如下：
+ * 
+ * 1. 将图层与独立开关/变量组关键字相关联
+ * 
+ *    在图层注释中添加以下属性：
+ * 
+ *    "swiVarKey": "try"
+ * 
+ *    - 将关键字为“try”的开关组和变量组使用到这个图层。
+ *      即，使用 ms 和 mv 引用开关/变量值时，
+ *      使用的是关键字为“try”的开关/变量组里的开关/变量。
+ *      如果不存在该关键字的开关/变量组，则会各新建一个。
+ * 
+ *    不同的图层可以设置同一个关键字的开关/变量组，
+ *    这样，这些图层就共享同样的开关/变量值。
+ *    这个机制可以用于同一地图下的多张同频率动态帧图层。
+ * 
+ * 2. 在图层内部其他属性中使用独立开关值/变量值
+ * 
+ *    和 s，v 类似，可以使用 ms 和 mv 两个引用来获取和设置开关/变量值。
+ *    但！注意！ms 和 mv 的用法与 s，v 不同。
+ *    例如，可以通过以下方式获取开关/变量值：
  *
+ *    · 参数"visible"可以这样写：
+ *      "visible": "ms[2]"
+ *      - 这表示由独立开关组的开关#2来实时控制图片的显示与隐藏。
  *
+ *    · 参数"rotation"可以这样写：
+ *      "rotation": "mv[1]*Math.PI"
+ *      - 这表示由独立变量组的变量#1来控制图片的旋转角度。变量#1最好是介于0到2的数字。
+ * 
+ *    如果要设置开关/变量值，则这样写：
+ * 
+ *    ms[3] = true; // 将独立开关组的开关#3程度值设为 true
+ *    mv[5] = 100; // 将独立变量组的变量#5程度值设为 100
+ * 
+ * 3. 在图层外部（地图事件内）获取/控制独立开关值/变量值
+ * 
+ *    除了在图层内部，还可以在图层外部（事件内）通过插件指令
+ *    单独获取/控制这些开关/变量，
+ *    这样就可以实现提前用事件初始化开关/变量值等。
+ *    注意事项：
+ *    1. 指令可以是评估代码，例如 $gamePlayer.isMoving() ；
+ *    2. 将变量值设为字符串时，需要给文字内容前后加引号；
+ *    3. 对于 MV 指令，可以使用带空格的参数值（例如评估代码或字符串，具体见下）。
+ * 
+ *    ※ 对于 MV 使用者，插件指令如下：
+ * 
+ *     ULDS 获取开关 try 1 19
+ *     ULDS getSwi try 1 19
+ *     - 获取关键字为 try 的开关组的开关#1的值，并赋值给游戏开关#19。
+ * 
+ *     ULDS 控制开关 try 2 false
+ *     ULDS setSwi try 2 false
+ *     - 将关键字为 try 的开关组的开关#1的值设为 false。
+ * 
+ *     ULDS 控制开关 try 2 !$gamePlayer.isMoving()
+ *     ULDS setSwi try 2 !$gamePlayer.isMoving()
+ *     - 判断 !$gamePlayer.isMoving() 的代码值，并将关键字为 try 的开关组的
+ *       开关#1的值设为这个值。
+ *       （指令可以是评估代码）
+ * 
+ *     ULDS 获取变量 try 5 13
+ *     ULDS getVar try 5 13
+ *     - 获取关键字为 try 的变量组的变量#5的值，并赋值给游戏开关#13。
+ * 
+ *     ULDS 控制变量 try 4 120
+ *     ULDS setVar try 4 120
+ *     - 将关键字为 try 的变量组的变量#1的值设为 120。
+ * 
+ *     ULDS 控制变量 try 4 "Hello, World!"
+ *     ULDS setVar try 4 "Hello, World!"
+ *     - 将关键字为 try 的变量组的变量#1的值设为字符串“Hello, World!”。
+ *       （指令可以正常获取带空格的参数值；参数值为字符串时需要前后加引号）
+ * 
+ * 
  *
  * == 3. 例子 ==
  *
@@ -697,6 +919,23 @@
  *   图层位于相对于屏幕 (0, 0) 的位置 (屏幕左上角)。
  *   注：因为附件图层的锚点也是在图像正中央，且继承绑定目标图层的位置，
  *   所以附件图层会被绑定在目标图层的正中央。
+ * 
+ * 
+ * 8. "triggerEvent" 与 "triggerWhen"
+ * 
+ * <ulds>{
+ *   "name": "button",
+ *   "path": "system",
+ *   "anchor.x": 0.5,
+ *   "anchor.y": 0.5,
+ *   "x": 100,
+ *   "y": 100,
+ *   "triggerEvent": "s.setValue(12, true)",
+ *   "triggerWhen": "s.value(17)"
+ * }</ulds>
+ * - 在地图中使用 img/system/ 下的 button.png 作为可点击图层的图像。
+ *   该图层位于相对于屏幕 (100, 100) 的位置，锚点设在 (0.5, 0.5)，即图像正中央。
+ *   只有当开关#17打开时，点击图层才能运行代码，打开开关#12。
  *
  *
  *
@@ -719,7 +958,7 @@
  *
  * == 5. 技巧 ==
  *
- * 可以先稍微熟悉一下以上四个模块的内容，再来看这一模块。
+ * 可以先稍微熟悉一下以上四个章节的内容，再来看这一章节。
  *
  *
  * = 关于相对地图远景 =
@@ -1216,7 +1455,7 @@
  * 
  *     ！注意！作为直接展示给玩家的 base.png 图片必须处于 info.png 之下，
  *     否则 info.png 会被遮挡住。上述注释虽然都没有设置 z 属性，
- *     但 base.png 图层的设置早于 info.png，所以后者会盖在前者上面，符合条件。
+ *     但 base.png 图层的设置早于 info.png，所以前者会被后者盖住，符合条件。
  * 
  *
  *
@@ -1229,6 +1468,17 @@
 
 void function() {
 
+    // Modification
+    // Version Check
+    var isMZ = Utils.RPGMAKER_NAME === 'MZ';
+    var isMV = !Utils.RPGMAKER_NAME || Utils.RPGMAKER_NAME !== 'MZ';
+    var ver = Utils.RPGMAKER_VERSION || 0;
+    if(!isMZ && isMV && ver.split('.')[1] < 6) {
+        console.error(`The ULDS.js you are using is incompatible with RPG Maker MV version 1.5 or below. Please update the core scrpits to version 1.6.0 or higher.`);
+        return;
+    }
+    // Modification End
+
     var assign = Object.assign || function(target) {
         for (var i = 1; i < arguments.length; i++) {
             var source = arguments[i];
@@ -1240,12 +1490,17 @@ void function() {
     };
 
     var RE = /<ulds>([^]*?)<\/ulds>/ig;
-    var parameters = PluginManager.parameters('ULDS');
+    // Modification
+    var PLUGIN_NAME = 'ULDS';
+    var parameters = PluginManager.parameters(PLUGIN_NAME);
     var DEFAULT_SETTINGS = {
         z: parseFloat(parameters['Default Z']),
         path: parameters['Default Path'],
+        max_swi: +parameters['Max Self Switches Number'] || 5,
+        max_var: +parameters['Max Self Variables Number'] || 5,
         smooth: true
     };
+    // Modification End
 
     // Feel free to add your own helper.
     var Helper = {
@@ -1288,7 +1543,10 @@ void function() {
             }
             // Modification End
             ++this.t;
-            this._updater(this.t, $gameSwitches, $gameVariables);
+            // Modification
+            // Format: ms[ID], mv[ID]
+            this._updater(this.t, $gameSwitches, $gameVariables, $gameULDSSelfSwitches.layerValue(this._ULDS_swiVarKey), $gameULDSSelfVariables.layerValue(this._ULDS_swiVarKey));
+            // Modification End
         },
 
         assignSettings: function(settings) {
@@ -1319,17 +1577,33 @@ void function() {
             }
             // You may log the code for debugging purpose.
             // console.log(code);
-            this._updater = new Function('t', 's', 'v', code);
+            // Modification
+            this._updater = new Function('t', 's', 'v', 'ms', 'mv', code);
+            // Modification End
         }
     };
 
-    // NOT a class constructor
+    // NOT a class varructor
     function ULDS(settings) {
         settings = assign({}, DEFAULT_SETTINGS, settings);
         var spriteClass = settings.loop ? ULDS.TilingSprite : ULDS.Sprite;
         var bitmap = ImageManager.loadBitmap('img/' + settings.path + '/',
             settings.name, settings.hue, settings.smooth);
         var sprite = new spriteClass(bitmap);
+
+        // Modification
+        // erase triggerEvent before assignment
+        var triggerEvent = settings.triggerEvent;
+        delete settings.triggerEvent;
+        // for swiVarKey property (setup self switches & variables key)
+        var swiVarKey = settings.swiVarKey;
+        if(swiVarKey) {
+            sprite._ULDS_swiVarKey = swiVarKey;
+            $gameULDSSelfSwitches.register(swiVarKey);
+            $gameULDSSelfVariables.register(swiVarKey);
+        }
+        delete settings.swiVarKey;
+        // Modification End
 
         delete settings.path;
         delete settings.name;
@@ -1358,6 +1632,10 @@ void function() {
         }
         delete settings.attachID;
         delete settings.attachment;
+        // for triggerEvent and triggerWhen property
+        if(triggerEvent) {
+            $gameULDSTrigger.addLayer(sprite, triggerEvent);
+        }
         // Modification End
 
         return sprite;
@@ -1368,13 +1646,13 @@ void function() {
     };
 
     ULDS.Sprite.prototype = Object.create(Sprite.prototype);
-    ULDS.Sprite.prototype.constructor = ULDS.Sprite;
+    ULDS.Sprite.prototype.varructor = ULDS.Sprite;
     assign(ULDS.Sprite.prototype, Helper);
 
-    // Modification
     ULDS.TilingSprite = function(bitmap) {
         TilingSprite.call(this, bitmap);
         bitmap.addLoadListener(function() {
+            // Modification
             // Bug Fix: TilingSprite with bitmap, whose width and/or height are/is smaller than the game screen width and/or height, works inproperly (the display size only equals to the bitmap size).
             this.move(0, 0, Math.max(bitmap.width, Graphics.width), Math.max(bitmap.height, Graphics.height));
             // Modification End
@@ -1382,7 +1660,7 @@ void function() {
     };
 
     ULDS.TilingSprite.prototype = Object.create(TilingSprite.prototype);
-    ULDS.TilingSprite.prototype.constructor = ULDS.TilingSprite;
+    ULDS.TilingSprite.prototype.varructor = ULDS.TilingSprite;
     assign(ULDS.TilingSprite.prototype, Helper);
 
     Object.defineProperties(ULDS.TilingSprite.prototype, {
@@ -1400,9 +1678,15 @@ void function() {
     Spriteset_Map.prototype.createTilemap = function() {
         ct.call(this);
         // Modification
-        // initialize data per map
+        // refresh data per map
+
+        // [Note] self switches & self variables are not refreshed as map changes.
+        // $gameULDSSelfSwitches.clear();
+        // $gameULDSSelfVariables.clear();
+
         $gameULDSMasks.clear();
         $gameULDSSublayers.clear();
+        $gameULDSTrigger.clear();
         // Modification End
         $dataMap.note.replace(RE, function(_match, settings) {
             var isValid = false;
@@ -1435,11 +1719,94 @@ void function() {
     // added by Rose_shadows
     //==================================================================================
 
-    let _RSSD_ULDS_DataManager_createGameObjects = DataManager.createGameObjects;
+    var _RSSD_ULDS_DataManager_createGameObjects = DataManager.createGameObjects;
     DataManager.createGameObjects = function() {
         _RSSD_ULDS_DataManager_createGameObjects.call(this);
+        $gameULDSSelfSwitches = new Game_ULDSSelfSwitches();
+        $gameULDSSelfVariables = new Game_ULDSSelfVariables();
         $gameULDSMasks = new Game_ULDSMasks();
-        $gameULDSSublayers = new Game_Sublayers();
+        $gameULDSSublayers = new Game_ULDSSublayers();
+        $gameULDSTrigger = new Game_ULDSTrigger();
+    };
+
+    /**
+     * Game_ULDSSelfSwitches
+     * The game object class for managing layers' self switches.
+     */
+
+    window.$gameULDSSelfSwitches = null;
+
+    function Game_ULDSSelfSwitches() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Game_ULDSSelfSwitches.prototype.initialize = function() {
+        this.clear();
+    };
+
+    Game_ULDSSelfSwitches.prototype.clear = function() {
+        this._data = {};
+    };
+
+    Game_ULDSSelfSwitches.prototype.maxItem = function() {
+        return DEFAULT_SETTINGS.max_swi;
+    };
+
+    Game_ULDSSelfSwitches.prototype.register = function(key) {
+        // the value can be accessed / pre-defined out of the layer itself
+        // or before the layer is applied, just to make sure the same ID is used.
+        this._data[key] = this._data[key] || [null];
+        for(let i = 0; i < this.maxItem(); i++) {
+            this._data[key].push(false);
+        }
+    };
+
+    Game_ULDSSelfSwitches.prototype.layerValue = function(key) {
+        return this._data[key] || null;
+    };
+
+    Game_ULDSSelfSwitches.prototype.setLayerValue = function(key, id, value) {
+        this._data[key][id] = value || false;
+    };
+
+    /**
+     * Game_ULDSSelfVariables
+     * The game object class for managing layers' self variables.
+     */
+
+    window.$gameULDSSelfVariables = null;
+
+    function Game_ULDSSelfVariables() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Game_ULDSSelfVariables.prototype.initialize = function() {
+        this.clear();
+    };
+
+    Game_ULDSSelfVariables.prototype.clear = function() {
+        this._data = {};
+    };
+
+    Game_ULDSSelfVariables.prototype.maxItem = function() {
+        return DEFAULT_SETTINGS.max_var;
+    };
+
+    Game_ULDSSelfVariables.prototype.register = function(key) {
+        // the value can be accessed / pre-defined out of the layer itself
+        // or before the layer is applied, just to make sure the same ID is used.
+        this._data[key] = this._data[key] || [null];
+        for(let i = 0; i < this.maxItem(); i++) {
+            this._data[key].push(0);
+        }
+    };
+
+    Game_ULDSSelfVariables.prototype.layerValue = function(key) {
+        return this._data[key] || null;
+    };
+
+    Game_ULDSSelfVariables.prototype.setLayerValue = function(key, id, value) {
+        this._data[key][id] = value || undefined;
     };
 
     /**
@@ -1460,6 +1827,7 @@ void function() {
     Game_ULDSMasks.prototype.clear = function() {
         this._data_s = {};
         this._data_g = [];
+        this._data_g_temp = []; // for updates in spriteset_map
     };
 
     Game_ULDSMasks.prototype.sprites = function() {
@@ -1480,6 +1848,7 @@ void function() {
 
     Game_ULDSMasks.prototype.registerGraphics = function(graphics) { // graphics: the sprite to which the graphics instance converted.
         this._data_g.push(graphics);
+        this._data_g_temp.push(graphics);
     };
 
     /**
@@ -1489,47 +1858,126 @@ void function() {
 
     window.$gameULDSSublayers = null;
 
-    function Game_Sublayers() {
+    function Game_ULDSSublayers() {
         this.initialize.apply(this, arguments);
     }
 
-    Game_Sublayers.prototype.initialize = function() {
+    Game_ULDSSublayers.prototype.initialize = function() {
         this.clear();
     };
 
-    Game_Sublayers.prototype.clear = function() {
+    Game_ULDSSublayers.prototype.clear = function() {
         this._parents = [];
         this._children = {};
     };
 
-    Game_Sublayers.prototype.parents = function() {
+    Game_ULDSSublayers.prototype.parents = function() {
         return this._parents;
     };
 
-    Game_Sublayers.prototype.sublayer = function(key) {
+    Game_ULDSSublayers.prototype.sublayer = function(key) {
         return this._children[key];
     };
 
-    Game_Sublayers.prototype.setParentLayer = function(sprite) {
+    Game_ULDSSublayers.prototype.setParentLayer = function(sprite) {
         this._parents.push(sprite);
     };
 
-    Game_Sublayers.prototype.setSubLayer = function(key, sprite) {
+    Game_ULDSSublayers.prototype.setSubLayer = function(key, sprite) {
         this._children[key] = sprite;
     };
 
-    Game_Sublayers.prototype.isSublayer = function(sprite) {
+    Game_ULDSSublayers.prototype.isSublayer = function(sprite) {
         var values = Object.values(this._children);
         return values.includes(sprite);
     };
 
-    Game_Sublayers.prototype.isParentlayer = function(sprite) {
+    Game_ULDSSublayers.prototype.isParentlayer = function(sprite) {
         var values = Object.values(this._parents);
         return values.includes(sprite);
     };
 
-    Game_Sublayers.prototype.isNormalLayer = function(sprite) {
+    Game_ULDSSublayers.prototype.isNormalLayer = function(sprite) {
         return !this.isSublayer(sprite) && !this.isParentlayer(sprite);
+    };
+
+    /**
+     * Game_ULDSTrigger
+     * The game object class for managing triggerable layers.
+     */
+
+    window.$gameULDSTrigger = null;
+
+    function Game_ULDSTrigger() {
+        this.initialize.apply(this, arguments);
+    }
+
+    Game_ULDSTrigger.prototype.initialize = function() {
+        this.clear();
+    };
+
+    Game_ULDSTrigger.prototype.clear = function() {
+        this._sprites = [null];
+        this._events = [null];
+        this._triggeredSpriteID = -1;
+    };
+
+    Game_ULDSTrigger.prototype.allLayers = function() {
+        return this._sprites;
+    };
+
+    Game_ULDSTrigger.prototype.allEvents = function() {
+        return this._events;
+    };
+
+    Game_ULDSTrigger.prototype.addLayer = function(sprite, event) {
+        this._sprites.push(sprite);
+        this._events.push(event);
+    };
+
+    Game_ULDSTrigger.prototype.update = function() {
+        this.updateTriggeredSprite();
+        this.updateTriggerEvent();
+    };
+
+    Game_ULDSTrigger.prototype.updateTriggeredSprite = function() {
+        var triggerCondition = TouchInput.isReleased();
+        if(triggerCondition && this.allLayers().length > 1) {
+            var touchPos = new Point(TouchInput.x, TouchInput.y);
+            var temp_data = this._sprites.filter((sprite)=>{
+                if(sprite) {
+                    var condition = sprite.triggerWhen === undefined ? true : sprite.triggerWhen;
+                    var localPos = sprite.worldTransform.applyInverse(touchPos);
+                    return condition && sprite.visible && sprite.bitmap.getPixel(localPos.x, localPos.y) !== '#000000';
+                }
+                return false;
+            });
+            var triggeredSprite = temp_data.sort((a, b) => { // from Tilemap.prototype._compareChildOrder
+                if (a.z !== b.z) {
+                    return b.z - a.z;
+                } else {
+                    return b.spriteId - a.spriteId;
+                }
+            })[0];
+            this._triggeredSpriteID = this._sprites.indexOf(triggeredSprite);
+        }
+    };
+
+    Game_ULDSTrigger.prototype.updateTriggerEvent = function() {
+        if(this._triggeredSpriteID > 0) {
+            var id = this._triggeredSpriteID;
+            var sprite = this._sprites[id];
+            var eventStr = this._events[id];
+            try {
+                var s = $gameSwitches, v = $gameVariables, t = sprite.t, 
+                ms = $gameULDSSelfSwitches.layerValue(sprite._ULDS_swiVarKey), mv = $gameULDSSelfVariables.layerValue(sprite._ULDS_swiVarKey);
+                eval(eventStr);
+            } catch (e) {
+                console.error(e);
+                console.log(`ULDS Trigger Eval Error Line: ${eventStr}`);
+            }
+            this._triggeredSpriteID = 0;
+        }
     };
 
     //==================================================================================
@@ -1545,13 +1993,162 @@ void function() {
         this._height = height || 0;
     };
 
+    // Additional update for ULDS layers
+    var __ULDS_Spriteset_Map_update = Spriteset_Map.prototype.update;
+    Spriteset_Map.prototype.update = function() {
+        __ULDS_Spriteset_Map_update.call(this);
+        $gameULDSTrigger.update();
+        this.updateULDSGraphicMasks();
+    };
+
+    // Add graphic mask to tilemap's children list
+    // If not, when the screen is shaking, the graphic mask keeps its position.
+    Spriteset_Map.prototype.updateULDSGraphicMasks = function() {
+        if($gameULDSMasks._data_g_temp.length) {
+            $gameULDSMasks._data_g_temp.forEach((sprite)=>{
+                this._tilemap.addChild(sprite);
+            });
+            $gameULDSMasks._data_g_temp = [];
+        }
+    };
+
+    // memory leak prevention for masks
+    if(isMZ) {
+        let __ULDS_Sprite_destroy = Sprite.prototype.destroy;
+        Sprite.prototype.destroy = function(options) {
+            if(this instanceof ULDS.Sprite || this instanceof ULDS.TilingSprite)
+                this.mask = null;
+            __ULDS_Sprite_destroy.call(this, options);
+        };
+        let __ULDS_TilingSprite_destroy = TilingSprite.prototype.destroy;
+        TilingSprite.prototype.destroy = function(options) {
+            if(this instanceof ULDS.Sprite || this instanceof ULDS.TilingSprite)
+                this.mask = null;
+            __ULDS_TilingSprite_destroy.call(this, options);
+        };
+    } else {
+        let __ULDS_Scene_Map_terminate = Scene_Map.prototype.terminate;
+        Scene_Map.prototype.terminate = function() {
+            __ULDS_Scene_Map_terminate.call(this);
+            this._spriteset._tilemap.children.forEach(sprite=>{
+                if(sprite instanceof ULDS.Sprite || sprite instanceof ULDS.TilingSprite)
+                    sprite.mask = null;
+            });
+        }
+    }
+
+    // Add plugin commands for external self switches & self variables control
+    if(isMZ) {
+        PluginManager.registerCommand(PLUGIN_NAME, 'getSwi', (args)=>{
+            const key = args.key;
+            const id = +args.id;
+            const tarId = +args.tarId;
+            if(key && id && tarId)
+            $gameSwitches.setValue(tarId, $gameULDSSelfSwitches.layerValue(key)[id]);
+        });
+        PluginManager.registerCommand(PLUGIN_NAME, 'setSwi', (args)=>{
+            const key = args.key;
+            const id = +args.id;
+            var value = undefined;
+            try{
+                value = eval(args.value.trim());
+            } catch(e) {
+                console.error(e);
+            }
+            if(key && id && typeof value === 'boolean')
+            $gameULDSSelfSwitches.setLayerValue(key, id, value);
+        });
+        PluginManager.registerCommand(PLUGIN_NAME, 'getVar', (args)=>{
+            const key = args.key;
+            const id = +args.id;
+            const tarId = +args.tarId;
+            if(key && id && tarId)
+            $gameVariables.setValue(tarId, $gameULDSSelfVariables.layerValue(key)[id]);
+        });
+        PluginManager.registerCommand(PLUGIN_NAME, 'setVar', (args)=>{
+            const key = args.key;
+            const id = +args.id;
+            var value = undefined;
+            try{
+                value = eval(args.value.trim());
+            } catch(e) {
+                console.error(e);
+            }
+            if(key && id && value !== undefined)
+            $gameULDSSelfVariables.setLayerValue(key, id, value);
+        });
+    } else {
+        var __ULDS_Game_Interpreter_pluginCommand = Game_Interpreter.prototype.pluginCommand;
+        Game_Interpreter.prototype.pluginCommand = function(command, args) {
+            __ULDS_Game_Interpreter_pluginCommand.call(this, command, args);
+            if(command.toUpperCase() === 'ULDS') {
+                switch(args[0].toUpperCase()) {
+                    case '获取开关':
+                    case 'getSwi':
+                        var key = args[1];
+                        var id = +args[2];
+                        var tarId = +args[3];
+                        if(key && id && tarId)
+                        $gameSwitches.setValue(tarId, $gameULDSSelfSwitches.layerValue(key)[id]);
+                        break;
+                    case '控制开关':
+                    case 'setSwi':
+                        var key = args[1];
+                        var id = +args[2];
+                        var evalStr = '';
+                        var _index = 3;
+                        while(args[_index] !== undefined) {
+                            evalStr += (args[_index] + ' ');
+                            _index++;
+                        }
+                        var value = undefined;
+                        try{
+                            value = eval(evalStr.trim());
+                        } catch(e) {
+                            console.error(e);
+                        }
+                        if(key && id && typeof value === 'boolean')
+                        $gameULDSSelfSwitches.setLayerValue(key, id, value);
+                        break;
+                    case '获取变量':
+                    case 'getVar':
+                        var key = args[1];
+                        var id = +args[2];
+                        var tarId = +args[3];
+                        if(key && id && tarId)
+                        $gameVariables.setValue(tarId, $gameULDSSelfVariables.layerValue(key)[id]);
+                        break;
+                    case '控制变量':
+                    case 'setVar':
+                        var key = args[1];
+                        var id = +args[2];
+                        var evalStr = '';
+                        var _index = 3;
+                        while(args[_index] !== undefined) {
+                            evalStr += (args[_index] + ' ');
+                            _index++;
+                        }
+                        var value = undefined;
+                        try{
+                            value = eval(evalStr.trim());
+                        } catch(e) {
+                            console.error(e);
+                        }
+                        if(key && id && value !== undefined)
+                        $gameULDSSelfVariables.setLayerValue(key, id, value);
+                        break;
+                }
+            }
+        };
+    }
+
     //==================================================================================
     // ULDS - Custom Properties
     // added by Rose_shadows
     //==================================================================================
 
     // requisites
-    let _RSSD_ULDS_Sprite_initialize = Sprite.prototype.initialize;
+    var _RSSD_ULDS_Sprite_initialize = Sprite.prototype.initialize;
     Sprite.prototype.initialize = function(bitmap) {
         _RSSD_ULDS_Sprite_initialize.call(this, bitmap);
         this.initULDSEntendedParams();
@@ -1562,6 +2159,7 @@ void function() {
             this._ULDS_bitmapIcon = null;
             this._ULDS_withMask = "";
             this._ULDS_tiling_viewport = null;
+            this._ULDS_swiVarKey = "";
         }
     };
 
@@ -1571,6 +2169,41 @@ void function() {
      */
     var newProperties = {
 
+        /**
+         * "attachID": "KEY"
+         * "attachment": "attachment_1 (, attachment_2, attachment_3, ...)"
+         * 
+         * - Allows you to attach layer to another layer.
+         */
+        
+        /**---------------------------------------------------------------------------------
+         * "triggerEvent": "CODE TO RUN WHEN CLICKED AND THE CONDITION IS MET"
+         * "triggerWhen": "CONDITIONAL EXPRESSION"
+         * 
+         * - Allows you to run scripts when clicking the layer.
+         * 
+         * Usage Note:
+         * 
+         * 1. Pseudo alpha check: if the clicked pixel is any color EXCEPT #000000, the event will be triggered 
+         *    (the transparent part of image will be interpreted as pure black).
+         * 2. Avoid dynamic usage for better performance (getPixels() may be expensive for too many sprites).
+         * 3. If you click on the overlapping part of layers, only the event of the layer at the top (comparing z index and spriteId) will be triggered.
+         * 4. Incompatible with property rotation and skew, as the pseudo alpha check is applied on bitmap's image data.
+         * ※ If you want to expand the triggerable area of the layer, you may fill the area white beneath the main layer image,
+         *    and set its blendMode to 2 (MULTIPLY).
+         */
+
+        /**
+         * "swiVarKey": "KEY"
+         * 
+         * - Allows you to register a series of switches and variables specified for the layer 
+         *   and thus reduce the unnecessary usage on Game Switches and Game Variables.
+         *   The default max number of self switches and variables is 5.
+         *   The plugin also provides plugin commands for external control on them.
+         */
+
+
+
         /**---------------------------------------------------------------------------------
          * "frame": "{tx: tile_x, ty: tile_y, tw: tile_width, th: tile_height}"
          * "frame": "{x: x, y: y, w: width, h: height}" (in pixels)
@@ -1578,6 +2211,7 @@ void function() {
          * - Allows you to use just a part of the image source in case you have too many doodads
          *   and you don't want to use them as seperated image files.
          */
+        
         /**
          * The property for frame.
          *
@@ -1589,16 +2223,16 @@ void function() {
                 return this._frame;
             },
             "set": function(params) {
-                const frame = this._frame;
+                var frame = this._frame;
                 if(params instanceof Object) {
                     if(params.tx !== undefined) {
                         // in tileSizes
-                        const tileWidth = $gameMap.tileWidth();
-                        const tileHeight = $gameMap.tileHeight();
-                        const x = (+params.tx - 1) * tileWidth;
-                        const y = (+params.ty - 1) * tileHeight;
-                        const w = (+(params.tw || "1")) * tileWidth;
-                        const h = (+(params.th || "1")) * tileHeight;
+                        var tileWidth = $gameMap.tileWidth();
+                        var tileHeight = $gameMap.tileHeight();
+                        var x = (+params.tx - 1) * tileWidth;
+                        var y = (+params.ty - 1) * tileHeight;
+                        var w = (+(params.tw || "1")) * tileWidth;
+                        var h = (+(params.th || "1")) * tileHeight;
                         if(frame.x !== x || frame.y !== y || frame.width !== w || frame.height !== h) {
                             this._frame.x = x;
                             this._frame.y = y;
@@ -1642,29 +2276,29 @@ void function() {
             "set": function(icon) {
                 if(icon) {
                     if(!isNaN(+icon)) {
-                        const iconIndex = +icon;
-                        const str = `{i:${iconIndex},f:16}`;
+                        var iconIndex = +icon;
+                        var str = `{i:${iconIndex},f:16}`;
                         if(this._ULDS_bitmapIcon === str) return;
                         this._ULDS_bitmapIcon = str;
-                        const pw = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth;
-                        const ph = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight;
-                        const sx = (iconIndex % 16) * pw;
-                        const sy = Math.floor(iconIndex / 16) * ph;
-                        const bitmap = new Bitmap(pw, ph);
+                        var pw = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth;
+                        var ph = Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight;
+                        var sx = (iconIndex % 16) * pw;
+                        var sy = Math.floor(iconIndex / 16) * ph;
+                        var bitmap = new Bitmap(pw, ph);
                         bitmap.blt(this.bitmap, sx, sy, pw, ph, 0, 0);
                         this.bitmap = bitmap;
                     } else if(icon instanceof Object) {
-                        const iconIndex = +icon.i;
+                        var iconIndex = +icon.i;
                         icon.i = iconIndex;
-                        const str = JSON.stringify(icon);
+                        var str = JSON.stringify(icon);
                         if(this._ULDS_bitmapIcon === str) return;
                         this._ULDS_bitmapIcon = JSON.stringify(icon);
-                        const pw = icon.w || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth);
-                        const ph = icon.h || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight);
-                        const f = icon.f || 16;
-                        const sx = (iconIndex % f) * pw;
-                        const sy = Math.floor(iconIndex / f) * ph;
-                        const bitmap = new Bitmap(pw, ph);
+                        var pw = icon.w || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconWidth : Window_Base._iconWidth);
+                        var ph = icon.h || (Utils.RPGMAKER_NAME === 'MZ' ? ImageManager.iconHeight : Window_Base._iconHeight);
+                        var f = icon.f || 16;
+                        var sx = (iconIndex % f) * pw;
+                        var sy = Math.floor(iconIndex / f) * ph;
+                        var bitmap = new Bitmap(pw, ph);
                         bitmap.blt(this.bitmap, sx, sy, pw, ph, 0, 0);
                         this.bitmap = bitmap;
                     } else {
@@ -1700,13 +2334,13 @@ void function() {
                 /**
                  * {text: text, lineHeight: lineHeight, fontSize: fontSize, fontFace: fontFace, fontBold: fontBold, ...}
                  */
-                const ts = textSettings;
+                var ts = textSettings;
                 if(Array.isArray(ts)) {
                     // Multi-Lines
-                    const bitmap = new Bitmap(1, 1);
-                    const textArray = [];
-                    let bx = 0, by = 0, bw = 0, bh = 0;
-                    let fontSize = 16, lineHeight = fontSize+8, maxWidth = 0, align = 'left', x = 0, y = 0;
+                    var bitmap = new Bitmap(1, 1);
+                    var textArray = [];
+                    var bx = 0, by = 0, bw = 0, bh = 0;
+                    var fontSize = 16, lineHeight = fontSize+8, maxWidth = 0, align = 'left', x = 0, y = 0;
                     ts.forEach(s => {
                         textArray.push(s.text);
                         fontSize = s.fontSize ? +s.fontSize : fontSize;
@@ -1716,14 +2350,14 @@ void function() {
                         x = s.x ? +s.x : x;
                         y = s.y ? +s.y : y;
                         bitmap.fontSize = fontSize;
-                        const textWidth = bitmap.measureTextWidth(s.text)+8; // for safety
+                        var textWidth = bitmap.measureTextWidth(s.text)+8; // for safety
                         bitmap.fontSize = 16;
                         bx += x; by += y;
                         bw = (maxWidth&&Math.max(bw, maxWidth)) || Math.max(bw, bx + textWidth);
                         bh += y + lineHeight;
                         by += lineHeight;
                     });
-                    const fullText = textArray.join('\n');
+                    var fullText = textArray.join('\n');
                     if(fullText !== this._ULDS_bitmapText) {
                         this._ULDS_bitmapText = fullText;
                         bitmap.resize(bw, bh);
@@ -1742,7 +2376,6 @@ void function() {
                             align = s.align ? s.align : align;
                             x = s.x ? +s.x : x;
                             y = s.y ? +s.y : y;
-                            const textWidth = bitmap.measureTextWidth(s.text)+8; // for safety
                             bx += x; by += y;
                             bitmap.drawText(s.text, bx, by, maxWidth, lineHeight, align);
                             by += lineHeight;
@@ -1753,10 +2386,10 @@ void function() {
                     }
                 }else if(ts instanceof Object) {
                     // Single-Line
-                    const text = ts.text;
+                    var text = ts.text;
                     if(text && text !== this._ULDS_bitmapText) {
                         this._ULDS_bitmapText = text;
-                        const bitmap = new Bitmap(1, 1);
+                        var bitmap = new Bitmap(1, 1);
                         if(ts.fontSize) bitmap.fontSize = +ts.fontSize;
                         if(ts.fontFace) bitmap.fontFace = ts.fontFace;
                         if(ts.fontBold) bitmap.fontBold = ts.fontBold === 'true';
@@ -1764,9 +2397,9 @@ void function() {
                         if(ts.textColor) bitmap.textColor = ts.textColor;
                         if(ts.outlineColor) bitmap.outlineColor = ts.outlineColor;
                         if(ts.outlineWidth) bitmap.outlineWidth = +ts.outlineWidth;
-                        let lineHeight = bitmap.fontSize/4*5, maxWidth = 0, align = 'left', x = 0, y = 0;
+                        var lineHeight = bitmap.fontSize/4*5, maxWidth = 0, align = 'left', x = 0, y = 0;
                         if(ts.lineHeight) lineHeight = +ts.lineHeight;
-                        const textWidth = bitmap.measureTextWidth(text)+8; // for safety
+                        var textWidth = bitmap.measureTextWidth(text)+8; // for safety
                         bitmap.resize(textWidth, lineHeight);
                         bitmap.drawText(text, x, y, maxWidth, lineHeight, align);
                         if(Utils.RPGMAKER_NAME === 'MZ') this.bitmap.destroy();
@@ -1799,9 +2432,9 @@ void function() {
             },
             "set": function(settings) {
                 if(settings instanceof Object) {
-                    const type = settings.type;
-                    const id = settings.id;
-                    const render = settings.render;
+                    var type = settings.type;
+                    var id = settings.id;
+                    var render = settings.render;
                     if(!type || type.toUpperCase() === 'SPRITE' || type.toUpperCase() === 'S') {
                         if(id && this._ULDS_withMask !== id && $gameULDSMasks.mask(id)) { // id: string
                             this._ULDS_withMask = id;
@@ -1817,11 +2450,11 @@ void function() {
                                 console.error(e);
                                 console.log(`ULDS render function Error: "${render}"`);
                             }
-                            const renderTexture = PIXI.RenderTexture.create(Graphics.width,Graphics.height);
-                            const renderer = Utils.RPGMAKER_NAME === 'MZ' ? Graphics.app.renderer : Graphics._renderer;
+                            var renderTexture = PIXI.RenderTexture.create(Graphics.width,Graphics.height);
+                            var renderer = Utils.RPGMAKER_NAME === 'MZ' ? Graphics.app.renderer : Graphics._renderer;
                             renderer.render(mask, renderTexture);
-                            const maskSprite = new PIXI.Sprite(renderTexture);
-                            const PIXI_V = +PIXI.VERSION.split('.').shift();
+                            var maskSprite = new PIXI.Sprite(renderTexture);
+                            var PIXI_V = +PIXI.VERSION.split('.').shift();
                             if(PIXI_V >= 5) {
                                 maskSprite.position.copyFrom(mask.position);
                             } else {
@@ -1842,9 +2475,16 @@ void function() {
         }
     };
 
+
+    // Properties only for ULDS.Sprite() instance.
+
     newProperties_sprite = {};
 
+
+    // Properties only for ULDS.TilingSprite() instance.
+
     newProperties_tilingSprite = {
+
         // Bug Fix: Cannot set TilingSprite's x and y properly.
         // As ULDS.TilingSprite overrides the definition of x and y, the actual x and y should be copied from pixi.js.
         // viewport x and y (the actual x and y of the tiling sprite)
@@ -1867,7 +2507,7 @@ void function() {
                 return this._ULDS_tiling_viewport;
             },
             set: function(params) {
-                const x = params.x, y = params.y, w = params.w, h = params.h;
+                var x = params.x, y = params.y, w = params.w, h = params.h;
                 if(this.vx !== x || this.vy !== y || this._width !== w || this._height !== h) {
                     this._ULDS_tiling_viewport = params;
                     this.move(x, y, w, h);
